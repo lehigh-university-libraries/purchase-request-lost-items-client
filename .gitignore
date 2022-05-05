@@ -6,3 +6,6 @@ target/
 
 ### VS Code ###
 .vscode/
+
+### Spring ###
+**/application.properties
