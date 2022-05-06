@@ -63,6 +63,11 @@ public class PropertiesConfig {
              */
             private String lost;
 
+            /**
+             * FOLIO UUID for the statistical code for items added to the workflow.
+             */
+            private String inWorkflow;
+
         }
 
     }

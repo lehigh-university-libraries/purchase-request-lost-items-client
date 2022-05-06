@@ -1,5 +1,7 @@
 package edu.lehigh.libraries.purchase_request.model;
 
+import org.json.JSONObject;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,5 +37,11 @@ public class PurchaseRequest {
     private String reporterName;
 
     private String creationDate;
+
+    @ToString.Exclude
+    private String existingFolioItemId;
+
+    @ToString.Exclude
+    private JSONObject existingFolioItem;
 
 }

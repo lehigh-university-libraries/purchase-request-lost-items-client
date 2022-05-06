@@ -20,9 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 public class MonitorService {
 
     private final String LOST_CODE;
+    private final String IN_WORKFLOW_CODE;
 
     @Autowired
-    private FolioConnection connection;
+    private FolioConnection folio;
 
     @Autowired
     private WorkflowConnection workflow;
@@ -31,6 +32,7 @@ public class MonitorService {
         log.info("Starting MonitorService.");
 
         this.LOST_CODE = config.getFolio().getStatisticalCodes().getLost();
+        this.IN_WORKFLOW_CODE = config.getFolio().getStatisticalCodes().getInWorkflow();
     }
     
     @Scheduled(cron = "${lost-items-client.schedule}")
@@ -41,7 +43,13 @@ public class MonitorService {
         if (purchaseRequests.size() > 0) {
             log.info("Sending " + purchaseRequests.size() + " new purchase requests.");
             for (PurchaseRequest purchaseRequest: purchaseRequests) {
-                submitPurchaseRequest(purchaseRequest);
+                boolean success = workflow.submitRequest(purchaseRequest);
+                if (!success) {
+                    log.warn("Failed to submit purchase request.");
+                    return;
+                }
+                log.debug("Successfully submitted purchase request.");
+                markItemSubmittedToWorkflow(purchaseRequest);
             }
         }
     }
@@ -51,7 +59,7 @@ public class MonitorService {
         String url = "/inventory/items";
         String queryString = "query=(statisticalCodeIds=" + LOST_CODE + ")";
         try {
-            JSONObject responseObject = connection.executeGet(url, queryString);
+            JSONObject responseObject = folio.executeGet(url, queryString);
             JSONArray items = responseObject.getJSONArray("items");
             for (Object itemObject: items) {
                 JSONObject item = (JSONObject)itemObject;
@@ -78,16 +86,34 @@ public class MonitorService {
         String barcode = item.getString("barcode");
         purchaseRequest.setRequesterComments("Lost Item.  Barcode: " + barcode);
 
+        String id = item.getString("id");
+        purchaseRequest.setExistingFolioItemId(id);
+
+        purchaseRequest.setExistingFolioItem(item);
+
         return purchaseRequest;
     }
 
-    private void submitPurchaseRequest(PurchaseRequest purchaseRequest) {
-        boolean success = workflow.submitRequest(purchaseRequest);
-        if (success) {
-            log.debug("Successfully submitted request.");
+    private void markItemSubmittedToWorkflow(PurchaseRequest purchaseRequest) {
+        // Mark the item submitted
+        JSONObject item = purchaseRequest.getExistingFolioItem();
+        JSONArray statisticalCodeIds = item.getJSONArray("statisticalCodeIds");
+        statisticalCodeIds.put(IN_WORKFLOW_CODE);
+
+        // Update it in FOLIO
+        log.debug("Calling FOLIO to mark item as submitted to workflow.");
+        String url = "/inventory/items/" + purchaseRequest.getExistingFolioItemId();
+        try {
+            boolean success = folio.executePut(url, item);
+            if (success) {
+                log.debug("Successfully updated FOLIO item.");
+            }
+            else {
+                log.warn("Failed to update FOLIO item as submitted to workflow.");
+            }
         }
-        else {
-            log.warn("Failed to submit request.");
+        catch (Exception e) {
+            log.error("Exception updating FOLIO for lost items: ", e);
         }
     }
 

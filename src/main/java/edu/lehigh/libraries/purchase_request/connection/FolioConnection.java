@@ -104,4 +104,24 @@ public class FolioConnection {
         return jsonObject;
     }
 
+    public boolean executePut(String url, JSONObject data) throws Exception {
+        HttpUriRequest putRequest = RequestBuilder.put()
+            .setUri(config.getFolio().getOkapiBaseUrl() + url)
+            .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
+            .setHeader(TOKEN_HEADER, token)
+            .setEntity(new StringEntity(data.toString()))
+            .build();
+
+        CloseableHttpResponse response;
+        response = client.execute(putRequest);
+        if (response.getStatusLine().getStatusCode() == 204) {
+            log.debug("Got successful response to PUT.");
+            return true;
+        }
+        else {
+            log.warn("Got response with code " + response.getStatusLine());
+            return false;
+        }
+    }
+
 }
