@@ -27,4 +27,64 @@ public class PropertiesConfig {
      */
     private String schedule;
 
+    private Folio folio;
+    private WorkflowServer workflowServer;
+
+    @Getter @Setter
+    public static class Folio {
+
+        /**
+         * FOLIO API username
+         */
+        private String username;
+
+        /**
+         * FOLIO API password
+         */
+        private String password;
+
+        /**
+         * FOLIO API tenant ID
+         */
+        private String tenantId;
+
+        /**
+         * FOLIO API base OKAPI url
+         */
+        private String okapiBaseUrl;
+
+        private StatisticalCodes statisticalCodes;
+
+        @Getter @Setter
+        public static class StatisticalCodes {
+
+            /**
+             * FOLIO UUID for the statistical code for items confirmed lost.
+             */
+            private String lost;
+
+        }
+
+    }
+
+    @Getter @Setter
+    public static class WorkflowServer {
+
+        /**
+         * Workflow Proxy Server base url for API calls
+         */
+        private String baseUrl;
+
+        /**
+         * Workflow Proxy Server username
+         */
+        private String username;
+
+        /**
+         * Workflow Proxy Server password
+         */
+        private String password;
+
+    }
+
 }
