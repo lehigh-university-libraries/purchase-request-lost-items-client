@@ -43,6 +43,7 @@ public class MonitorService {
         if (purchaseRequests.size() > 0) {
             log.info("Sending " + purchaseRequests.size() + " new purchase requests.");
             for (PurchaseRequest purchaseRequest: purchaseRequests) {
+                log.info("Requesting replacement purchase: " + purchaseRequest);
                 boolean success = workflow.submitRequest(purchaseRequest);
                 if (!success) {
                     log.warn("Failed to submit purchase request.");
@@ -57,7 +58,10 @@ public class MonitorService {
     private List<PurchaseRequest> checkForNewLostItems() {
         List<PurchaseRequest> purchaseRequests = new ArrayList<PurchaseRequest>();
         String url = "/inventory/items";
-        String queryString = "query=(statisticalCodeIds=" + LOST_CODE + ")";
+        String queryString = "query=("
+            + "(statisticalCodeIds=" + LOST_CODE + ") "
+            + "not (statisticalCodeIds=" + IN_WORKFLOW_CODE + ")"
+            + ")";
         try {
             JSONObject responseObject = folio.executeGet(url, queryString);
             JSONArray items = responseObject.getJSONArray("items");
