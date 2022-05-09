@@ -90,6 +90,11 @@ public class PropertiesConfig {
              */
             private String lostItemWorkflowTag;
 
+            /**
+             * FOLIO UUID for the item note type for a comment about replacing this lost item.
+             */
+            private String lostItemWorkflowComment;
+
         }
 
     }

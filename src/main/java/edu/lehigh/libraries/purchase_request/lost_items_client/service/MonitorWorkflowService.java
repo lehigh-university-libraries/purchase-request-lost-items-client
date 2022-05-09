@@ -1,7 +1,10 @@
 package edu.lehigh.libraries.purchase_request.lost_items_client.service;
 
+import java.util.Iterator;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +18,14 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     
     private final String APPROVED_STATUS;
     private final String DENIED_STATUS;
+    private final String WORKFLOW_COMMENT_ITEM_NOTE_TYPE;
 
     public MonitorWorkflowService(PropertiesConfig config) throws Exception {
         super(config);
 
         this.APPROVED_STATUS = config.getWorkflowServer().getApprovedStatus();
         this.DENIED_STATUS = config.getWorkflowServer().getDeniedStatus();
+        this.WORKFLOW_COMMENT_ITEM_NOTE_TYPE = config.getFolio().getItemNotes().getLostItemWorkflowComment();
 
         log.info("Started MonitorWorkflowService.");
     }
@@ -66,7 +71,56 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
 
     private void handleApproval(PurchaseRequest purchaseRequest) {
         log.info("Purchase approved: " + purchaseRequest);
-        // TODO
+        JSONObject item = purchaseRequest.getExistingFolioItem();
+
+        // Set the item status
+        JSONObject status = item.getJSONObject("status");
+        status.put("name", "On order");
+
+        // Remove the statistical code
+        JSONArray statisticalCodeIds = item.getJSONArray("statisticalCodeIds");
+        Iterator<?> it = statisticalCodeIds.iterator();
+        while (it.hasNext()) {
+            String code = (String)it.next();
+            if (IN_WORKFLOW_CODE.equals(code)) {
+                it.remove();
+                break;
+            }
+        }
+
+        // Remove the workflow status note
+        JSONArray notes = item.getJSONArray("notes");
+        it = notes.iterator();
+        while (it.hasNext()) {
+            JSONObject note = (JSONObject)it.next();
+            if (WORKFLOW_TAG_ITEM_NOTE_TYPE.equals(note.getString("itemNoteTypeId"))) {
+                it.remove();
+                break;
+            }
+        }
+    
+        // Add a descriptive note
+        JSONObject note = new JSONObject();
+        note.put("itemNoteTypeId", WORKFLOW_COMMENT_ITEM_NOTE_TYPE);
+        note.put("note", "On [date] [user] selected to purchase this item. Previous status was [status]. [note]");
+        note.put("staffOnly", true);
+        notes.put(note);        
+
+        // Update it in FOLIO
+        log.debug("Calling FOLIO to mark item as approved.");
+        String url = "/inventory/items/" + purchaseRequest.getExistingFolioItemId();
+        try {
+            boolean success = folio.executePut(url, item);
+            if (success) {
+                log.debug("Successfully updated FOLIO item.");
+            }
+            else {
+                log.warn("Failed to update FOLIO item as approved.");
+            }
+        }
+        catch (Exception e) {
+            log.error("Exception updating FOLIO for lost items: ", e);
+        }
     }
 
     private void handleDenial(PurchaseRequest purchaseRequest) {
