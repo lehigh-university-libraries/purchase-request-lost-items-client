@@ -36,14 +36,17 @@ public class WorkflowConnection {
             config.getWorkflowServer().getPassword());
     }
 
-    public boolean submitRequest(PurchaseRequest purchaseRequest) {
+    public PurchaseRequest submitRequest(PurchaseRequest purchaseRequest) {
         HttpEntity<Object> request = new HttpEntity<Object>(purchaseRequest, headers);
-        Object result = restTemplate.postForObject(
+        Object resultObject = restTemplate.postForObject(
             BASE_URL + "/purchase-requests", 
             request,
-            Object.class);
+            PurchaseRequest.class);
+        PurchaseRequest result = (PurchaseRequest)resultObject;
         log.debug("Submitted request with result " + result);
-        return true;
+        result.setExistingFolioItem(purchaseRequest.getExistingFolioItem());
+        result.setExistingFolioItemId(purchaseRequest.getExistingFolioItemId());
+        return result;
     }
 
 }

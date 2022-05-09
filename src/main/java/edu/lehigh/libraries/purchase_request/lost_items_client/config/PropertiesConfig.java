@@ -54,6 +54,7 @@ public class PropertiesConfig {
         private String okapiBaseUrl;
 
         private StatisticalCodes statisticalCodes;
+        private ItemNotes itemNotes;
 
         @Getter @Setter
         public static class StatisticalCodes {
@@ -67,6 +68,16 @@ public class PropertiesConfig {
              * FOLIO UUID for the statistical code for items added to the workflow.
              */
             private String inWorkflow;
+
+        }
+
+        @Getter @Setter
+        public static class ItemNotes {
+
+            /**
+             * FOLIO UUID for the item note type for the tag (ID) of a workflow item to replace this lost item.
+             */
+            private String lostItemWorkflowTag;
 
         }
 

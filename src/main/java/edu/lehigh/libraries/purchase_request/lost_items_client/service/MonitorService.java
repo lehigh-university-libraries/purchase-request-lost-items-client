@@ -21,6 +21,7 @@ public class MonitorService {
 
     private final String LOST_CODE;
     private final String IN_WORKFLOW_CODE;
+    private final String WORKFLOW_TAG_ITEM_NOTE_TYPE;
 
     @Autowired
     private FolioConnection folio;
@@ -33,6 +34,7 @@ public class MonitorService {
 
         this.LOST_CODE = config.getFolio().getStatisticalCodes().getLost();
         this.IN_WORKFLOW_CODE = config.getFolio().getStatisticalCodes().getInWorkflow();
+        this.WORKFLOW_TAG_ITEM_NOTE_TYPE = config.getFolio().getItemNotes().getLostItemWorkflowTag();
     }
     
     @Scheduled(cron = "${lost-items-client.schedule}")
@@ -44,13 +46,11 @@ public class MonitorService {
             log.info("Sending " + purchaseRequests.size() + " new purchase requests.");
             for (PurchaseRequest purchaseRequest: purchaseRequests) {
                 log.info("Requesting replacement purchase: " + purchaseRequest);
-                boolean success = workflow.submitRequest(purchaseRequest);
-                if (!success) {
-                    log.warn("Failed to submit purchase request.");
-                    return;
+                PurchaseRequest savedRequest = workflow.submitRequest(purchaseRequest);
+                if (savedRequest != null) {
+                    log.debug("Successfully submitted purchase request.");
+                    markItemSubmittedToWorkflow(savedRequest);
                 }
-                log.debug("Successfully submitted purchase request.");
-                markItemSubmittedToWorkflow(purchaseRequest);
             }
         }
     }
@@ -103,6 +103,15 @@ public class MonitorService {
         JSONObject item = purchaseRequest.getExistingFolioItem();
         JSONArray statisticalCodeIds = item.getJSONArray("statisticalCodeIds");
         statisticalCodeIds.put(IN_WORKFLOW_CODE);
+
+        // Record the PR key
+        String key = purchaseRequest.getKey();
+        JSONArray notes = item.getJSONArray("notes");
+        JSONObject note = new JSONObject();
+        note.put("itemNoteTypeId", WORKFLOW_TAG_ITEM_NOTE_TYPE);
+        note.put("note", key);
+        note.put("staffOnly", true);
+        notes.put(note);
 
         // Update it in FOLIO
         log.debug("Calling FOLIO to mark item as submitted to workflow.");
