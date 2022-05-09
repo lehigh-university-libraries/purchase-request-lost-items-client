@@ -13,6 +13,8 @@ public class PurchaseRequest {
     private String key;
 
     private Long id;
+    
+    private String status;
 
     private String title;
     

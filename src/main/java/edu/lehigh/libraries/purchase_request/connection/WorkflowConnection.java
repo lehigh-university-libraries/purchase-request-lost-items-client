@@ -1,8 +1,13 @@
 package edu.lehigh.libraries.purchase_request.connection;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -46,6 +51,26 @@ public class WorkflowConnection {
         log.debug("Submitted request with result " + result);
         result.setExistingFolioItem(purchaseRequest.getExistingFolioItem());
         result.setExistingFolioItemId(purchaseRequest.getExistingFolioItemId());
+        return result;
+    }
+
+    public PurchaseRequest getPurchaseRequest(String key) {
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        URI uri;
+        try {
+            uri = new URI(BASE_URL + "/purchase-requests/" + key);
+        }
+        catch (URISyntaxException e) {
+            log.error("Bad URL syntax: ", e);
+            return null;
+        }
+        ResponseEntity<PurchaseRequest> responseEntity = restTemplate.exchange(
+            uri,
+            HttpMethod.GET,
+            entity,
+            PurchaseRequest.class);
+        PurchaseRequest result = responseEntity.getBody();
+        log.debug("Loaded PR: " + result);
         return result;
     }
 

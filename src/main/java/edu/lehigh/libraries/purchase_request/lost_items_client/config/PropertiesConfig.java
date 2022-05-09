@@ -22,13 +22,24 @@ public class PropertiesConfig {
     @NotNull
     private Boolean enabled;
     
-    /**
-     * Cron-format schedule to check FOLIO for lost items.
-     */
-    private String schedule;
-
+    private Schedule schedule;
     private Folio folio;
     private WorkflowServer workflowServer;
+
+    @Getter @Setter
+    public static class Schedule {
+
+        /**
+         * Cron-format schedule to check FOLIO for lost items.
+         */
+        private String newLostItems;
+
+        /**
+         * Cron-format schedule to check the Workflow service for decisions.
+         */
+        private String workflowDecisions;
+
+    }
 
     @Getter @Setter
     public static class Folio {
@@ -100,6 +111,16 @@ public class PropertiesConfig {
          * Workflow Proxy Server password
          */
         private String password;
+
+        /**
+         * Name of the workflow status representing approved purchase requests
+         */
+        private String approvedStatus;
+
+        /**
+         * Name of the workflow status representing denied purchase requests
+         */
+        private String deniedStatus;
 
     }
 
