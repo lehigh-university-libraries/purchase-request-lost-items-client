@@ -91,4 +91,20 @@ abstract class AbstractLostItemsService {
         return purchaseRequest;
     }
 
+    void updateItemInFolio(PurchaseRequest purchaseRequest, JSONObject item) {
+        String url = "/inventory/items/" + purchaseRequest.getExistingFolioItemId();
+        try {
+            boolean success = folio.executePut(url, item);
+            if (success) {
+                log.debug("Successfully updated FOLIO item.");
+            }
+            else {
+                log.warn("Failed to update FOLIO item as approved.");
+            }
+        }
+        catch (Exception e) {
+            log.error("Exception updating FOLIO for lost items: ", e);
+        }
+    }
+
 }

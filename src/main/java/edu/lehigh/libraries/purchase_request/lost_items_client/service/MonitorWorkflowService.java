@@ -72,12 +72,27 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     private void handleApproval(PurchaseRequest purchaseRequest) {
         log.info("Purchase approved: " + purchaseRequest);
         JSONObject item = purchaseRequest.getExistingFolioItem();
+        setItemStatus(item, "On order");
+        removeStatisticalCode(item);
+        removeStatusNote(item);
+        addDescriptiveNote(item);
 
-        // Set the item status
+        // Update it in FOLIO
+        log.debug("Calling FOLIO to mark item as approved.");
+        updateItemInFolio(purchaseRequest, item);
+    }
+
+    private void handleDenial(PurchaseRequest purchaseRequest) {
+        log.info("Purchase denied: " + purchaseRequest);
+        // TODO
+    }
+
+    private void setItemStatus(JSONObject item, String statusName) {
         JSONObject status = item.getJSONObject("status");
-        status.put("name", "On order");
+        status.put("name", statusName);
+    }
 
-        // Remove the statistical code
+    private void removeStatisticalCode(JSONObject item) {
         JSONArray statisticalCodeIds = item.getJSONArray("statisticalCodeIds");
         Iterator<?> it = statisticalCodeIds.iterator();
         while (it.hasNext()) {
@@ -87,10 +102,11 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
                 break;
             }
         }
+    }
 
-        // Remove the workflow status note
+    private void removeStatusNote(JSONObject item) {
         JSONArray notes = item.getJSONArray("notes");
-        it = notes.iterator();
+        Iterator<?> it = notes.iterator();
         while (it.hasNext()) {
             JSONObject note = (JSONObject)it.next();
             if (WORKFLOW_TAG_ITEM_NOTE_TYPE.equals(note.getString("itemNoteTypeId"))) {
@@ -98,34 +114,15 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
                 break;
             }
         }
-    
+    }
+
+    private void addDescriptiveNote(JSONObject item) {
         // Add a descriptive note
         JSONObject note = new JSONObject();
         note.put("itemNoteTypeId", WORKFLOW_COMMENT_ITEM_NOTE_TYPE);
         note.put("note", "On [date] [user] selected to purchase this item. Previous status was [status]. [note]");
         note.put("staffOnly", true);
         notes.put(note);        
-
-        // Update it in FOLIO
-        log.debug("Calling FOLIO to mark item as approved.");
-        String url = "/inventory/items/" + purchaseRequest.getExistingFolioItemId();
-        try {
-            boolean success = folio.executePut(url, item);
-            if (success) {
-                log.debug("Successfully updated FOLIO item.");
-            }
-            else {
-                log.warn("Failed to update FOLIO item as approved.");
-            }
-        }
-        catch (Exception e) {
-            log.error("Exception updating FOLIO for lost items: ", e);
-        }
-    }
-
-    private void handleDenial(PurchaseRequest purchaseRequest) {
-        log.info("Purchase denied: " + purchaseRequest);
-        // TODO
     }
 
 }

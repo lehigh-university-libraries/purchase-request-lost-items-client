@@ -59,19 +59,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
 
         // Update it in FOLIO
         log.debug("Calling FOLIO to mark item as submitted to workflow.");
-        String url = "/inventory/items/" + purchaseRequest.getExistingFolioItemId();
-        try {
-            boolean success = folio.executePut(url, item);
-            if (success) {
-                log.debug("Successfully updated FOLIO item.");
-            }
-            else {
-                log.warn("Failed to update FOLIO item as submitted to workflow.");
-            }
-        }
-        catch (Exception e) {
-            log.error("Exception updating FOLIO for lost items: ", e);
-        }
+        updateItemInFolio(purchaseRequest, item);
     }
 
 }
