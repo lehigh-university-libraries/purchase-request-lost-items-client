@@ -87,6 +87,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
 
         JSONObject item = purchaseRequest.getExistingFolioItem();
         setItemStatus(item, "Withdrawn");
+        setSuppressDiscovery(item, true);
         removeStatisticalCode(item);
         removeStatusNote(item);
         notePurchaseDenied(item, purchaseRequest);
@@ -94,6 +95,27 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         // Update it in FOLIO
         log.debug("Calling FOLIO to mark item as denied.");
         updateItemInFolio(purchaseRequest, item);
+
+        // Shadow the holdings record if appropriate
+        String holdingRecordId = item.getString("holdingsRecordId");
+        if (!hasUnsuppressedItems(holdingRecordId)) {
+            log.debug("Shadow the holdings record.");
+            JSONObject holdingRecord = getHoldingRecord(holdingRecordId);
+            setSuppressDiscovery(holdingRecord, true);
+            updateHoldingInFolio(holdingRecord);
+        }
+    }
+
+    private boolean hasUnsuppressedItems(String holdingsRecordId) {
+        log.debug("Checking for unsuppressed items on holdings: " + holdingsRecordId);
+        JSONArray itemRecords = getItemsForHoldingId(holdingsRecordId);
+        for (Object itemObject: itemRecords) {
+            JSONObject item = (JSONObject)itemObject;
+            if (!item.getBoolean("discoverySuppress")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void setItemStatus(JSONObject item, String statusName) {
@@ -142,6 +164,10 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         note.put("note", noteText);
         note.put("staffOnly", true);
         notes.put(note);        
+    }
+
+    private void setSuppressDiscovery(JSONObject record, boolean value) {
+        record.put("discoverySuppress", value);
     }
 
 }

@@ -109,6 +109,7 @@ public class FolioConnection {
             .setUri(config.getFolio().getOkapiBaseUrl() + url)
             .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
             .setHeader(TOKEN_HEADER, token)
+            .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
             .setEntity(new StringEntity(data.toString()))
             .build();
 

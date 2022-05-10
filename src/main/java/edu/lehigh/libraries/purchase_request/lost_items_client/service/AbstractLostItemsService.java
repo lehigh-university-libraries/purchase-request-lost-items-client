@@ -62,6 +62,20 @@ abstract class AbstractLostItemsService {
         return purchaseRequests;
     }
 
+    JSONObject getHoldingRecord(String id) { 
+        log.debug("Loading holding record: " + id);
+        String url = "/holdings-storage/holdings/" + id;
+        JSONObject holding;
+        try {
+            holding = folio.executeGet(url, null);
+        }
+        catch (Exception e) {
+            log.error("Exception querying for holding: ", e);
+            return null;
+        }
+        return holding;
+    }
+
     private PurchaseRequest parseItem(JSONObject item) {
         PurchaseRequest purchaseRequest = new PurchaseRequest();
 
@@ -99,12 +113,44 @@ abstract class AbstractLostItemsService {
                 log.debug("Successfully updated FOLIO item.");
             }
             else {
-                log.warn("Failed to update FOLIO item as approved.");
+                log.warn("Failed to update FOLIO item.");
             }
         }
         catch (Exception e) {
             log.error("Exception updating FOLIO for lost items: ", e);
         }
+    }
+
+    void updateHoldingInFolio(JSONObject holding) {
+        String url = "/holdings-storage/holdings/" + holding.getString("id");
+        try {
+            boolean success = folio.executePut(url, holding);
+            if (success) {
+                log.debug("Successfully updated FOLIO holding.");
+            }
+            else {
+                log.warn("Failed to update FOLIO holding.");
+            }
+        }
+        catch (Exception e) {
+            log.error("Exception updating FOLIO holding: ", e);
+        }
+    }
+
+    JSONArray getItemsForHoldingId(String id) { 
+        log.debug("Loading items for holding id: " + id);
+        String url = "/inventory/items-by-holdings-id";
+        String queryString = "holdingsRecordId==" + id;
+        JSONArray items;
+        try {
+            JSONObject responseObject = folio.executeGet(url, queryString);
+            items = responseObject.getJSONArray("items");
+        }
+        catch (Exception e) {
+            log.error("Exception querying for lost items: ", e);
+            return null;
+        }
+        return items;
     }
 
 }
