@@ -103,6 +103,15 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
             JSONObject holdingRecord = getHoldingRecord(holdingRecordId);
             setSuppressDiscovery(holdingRecord, true);
             updateHoldingInFolio(holdingRecord);
+
+            // Shadow the instance record if appropriate
+            String instanceId = holdingRecord.getString("instanceId");
+            if (!hasUnsuppressedHoldings(instanceId)) {
+                log.debug("Shadow the instance record.");
+                JSONObject instance = getInstance(instanceId);
+                setSuppressDiscovery(instance, true);
+                updateInstanceInFolio(instance);
+            }
         }
     }
 
@@ -112,6 +121,18 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         for (Object itemObject: itemRecords) {
             JSONObject item = (JSONObject)itemObject;
             if (!item.getBoolean("discoverySuppress")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasUnsuppressedHoldings(String instanceId) {
+        log.debug("Checking for unsuppressed items on instance: " + instanceId);
+        JSONArray holdingRecords = getHoldingsForInstanceId(instanceId);
+        for (Object holdingObject: holdingRecords) {
+            JSONObject holding = (JSONObject)holdingObject;
+            if (!holding.getBoolean("discoverySuppress")) {
                 return true;
             }
         }

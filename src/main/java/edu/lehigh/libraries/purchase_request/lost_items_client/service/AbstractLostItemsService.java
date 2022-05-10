@@ -76,6 +76,20 @@ abstract class AbstractLostItemsService {
         return holding;
     }
 
+    JSONObject getInstance(String id) { 
+        log.debug("Loading instance: " + id);
+        String url = "/inventory/instances/" + id;
+        JSONObject holding;
+        try {
+            holding = folio.executeGet(url, null);
+        }
+        catch (Exception e) {
+            log.error("Exception querying for instance: ", e);
+            return null;
+        }
+        return holding;
+    }
+
     private PurchaseRequest parseItem(JSONObject item) {
         PurchaseRequest purchaseRequest = new PurchaseRequest();
 
@@ -137,6 +151,22 @@ abstract class AbstractLostItemsService {
         }
     }
 
+    void updateInstanceInFolio(JSONObject instance) {
+        String url = "/inventory/instances/" + instance.getString("id");
+        try {
+            boolean success = folio.executePut(url, instance);
+            if (success) {
+                log.debug("Successfully updated FOLIO instance.");
+            }
+            else {
+                log.warn("Failed to update FOLIO instance.");
+            }
+        }
+        catch (Exception e) {
+            log.error("Exception updating FOLIO instance: ", e);
+        }
+    }
+
     JSONArray getItemsForHoldingId(String id) { 
         log.debug("Loading items for holding id: " + id);
         String url = "/inventory/items-by-holdings-id";
@@ -151,6 +181,22 @@ abstract class AbstractLostItemsService {
             return null;
         }
         return items;
+    }
+
+    JSONArray getHoldingsForInstanceId(String id) { 
+        log.debug("Loading holdings for instance id: " + id);
+        String url = "/holdings-storage/holdings";
+        String queryString = "instanceId==" + id;
+        JSONArray holdings;
+        try {
+            JSONObject responseObject = folio.executeGet(url, queryString);
+            holdings = responseObject.getJSONArray("holdingsRecords");
+        }
+        catch (Exception e) {
+            log.error("Exception querying for holdings: ", e);
+            return null;
+        }
+        return holdings;
     }
 
 }
