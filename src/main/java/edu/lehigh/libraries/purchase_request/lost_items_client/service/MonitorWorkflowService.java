@@ -75,7 +75,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         setItemStatus(item, "On order");
         removeStatisticalCode(item);
         removeStatusNote(item);
-        addDescriptiveNote(item, purchaseRequest);
+        notePurchaseApproved(item, purchaseRequest);
 
         // Update it in FOLIO
         log.debug("Calling FOLIO to mark item as approved.");
@@ -84,7 +84,16 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
 
     private void handleDenial(PurchaseRequest purchaseRequest) {
         log.info("Purchase denied: " + purchaseRequest);
-        // TODO
+
+        JSONObject item = purchaseRequest.getExistingFolioItem();
+        setItemStatus(item, "Withdrawn");
+        removeStatisticalCode(item);
+        removeStatusNote(item);
+        notePurchaseDenied(item, purchaseRequest);
+
+        // Update it in FOLIO
+        log.debug("Calling FOLIO to mark item as denied.");
+        updateItemInFolio(purchaseRequest, item);
     }
 
     private void setItemStatus(JSONObject item, String statusName) {
@@ -116,11 +125,21 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         }
     }
 
-    private void addDescriptiveNote(JSONObject item, PurchaseRequest purchaseRequest) {
+    private void notePurchaseApproved(JSONObject item, PurchaseRequest purchaseRequest) {
+        addDescriptiveNote(item,
+            "At " + purchaseRequest.getUpdateDate() + " a selector decided to re-purchase this lost item.");
+    }
+
+    private void notePurchaseDenied(JSONObject item, PurchaseRequest purchaseRequest) {
+        addDescriptiveNote(item, 
+            "At " + purchaseRequest.getUpdateDate() + " a selector decided to withdraw this lost item.");
+    }
+
+    private void addDescriptiveNote(JSONObject item, String noteText) {
         JSONArray notes = item.getJSONArray("notes");
         JSONObject note = new JSONObject();
         note.put("itemNoteTypeId", WORKFLOW_COMMENT_ITEM_NOTE_TYPE);
-        note.put("note", "At " + purchaseRequest.getUpdateDate() + " a selector decided to purchase this item.");
+        note.put("note", noteText);
         note.put("staffOnly", true);
         notes.put(note);        
     }
