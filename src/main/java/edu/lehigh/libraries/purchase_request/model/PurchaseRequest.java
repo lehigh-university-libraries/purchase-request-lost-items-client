@@ -40,6 +40,8 @@ public class PurchaseRequest {
 
     private String creationDate;
 
+    private String updateDate;
+
     @ToString.Exclude
     private String existingFolioItemId;
 

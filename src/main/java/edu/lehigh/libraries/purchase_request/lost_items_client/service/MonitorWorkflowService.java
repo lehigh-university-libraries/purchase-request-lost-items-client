@@ -75,7 +75,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         setItemStatus(item, "On order");
         removeStatisticalCode(item);
         removeStatusNote(item);
-        addDescriptiveNote(item);
+        addDescriptiveNote(item, purchaseRequest);
 
         // Update it in FOLIO
         log.debug("Calling FOLIO to mark item as approved.");
@@ -116,11 +116,11 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         }
     }
 
-    private void addDescriptiveNote(JSONObject item) {
-        // Add a descriptive note
+    private void addDescriptiveNote(JSONObject item, PurchaseRequest purchaseRequest) {
+        JSONArray notes = item.getJSONArray("notes");
         JSONObject note = new JSONObject();
         note.put("itemNoteTypeId", WORKFLOW_COMMENT_ITEM_NOTE_TYPE);
-        note.put("note", "On [date] [user] selected to purchase this item. Previous status was [status]. [note]");
+        note.put("note", "At " + purchaseRequest.getUpdateDate() + " a selector decided to purchase this item.");
         note.put("staffOnly", true);
         notes.put(note);        
     }
