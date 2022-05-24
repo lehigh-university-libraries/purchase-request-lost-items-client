@@ -49,7 +49,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
     private List<PurchaseRequest> loadNewLostItems() {
         String queryString = "("
             + buildStatusPhrase()
-            + buildWorkflowPhrase(false)
+            + " not " + buildWorkflowPhrase()
             + ")";
         return loadFolioItemsAsPurchaseRequests(queryString, QUERY_LIMIT);
     }

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MonitorWorkflowService extends AbstractLostItemsService {
     
+    private final Integer QUERY_LIMIT;
     private final String APPROVED_STATUS;
     private final String DENIED_STATUS;
     private final String WORKFLOW_COMMENT_ITEM_NOTE_TYPE;
@@ -23,6 +24,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     public MonitorWorkflowService(PropertiesConfig config) throws Exception {
         super(config);
 
+        this.QUERY_LIMIT = config.getFolio().getWorkflowItemsLimit();
         this.APPROVED_STATUS = config.getWorkflowServer().getApprovedStatus();
         this.DENIED_STATUS = config.getWorkflowServer().getDeniedStatus();
         this.WORKFLOW_COMMENT_ITEM_NOTE_TYPE = config.getFolio().getItemNotes().getLostItemWorkflowComment();
@@ -50,7 +52,8 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     }
 
     private List<PurchaseRequest> checkFolioForItemsInWorkflow() {
-        return loadFolioLostItems(Boolean.TRUE);
+        String queryString = buildWorkflowPhrase();
+        return loadFolioItemsAsPurchaseRequests(queryString, QUERY_LIMIT);
     }
 
     private PurchaseRequest updateFromWorkflow(PurchaseRequest purchaseRequest) {

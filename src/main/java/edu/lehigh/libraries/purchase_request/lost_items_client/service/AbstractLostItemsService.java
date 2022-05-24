@@ -32,27 +32,6 @@ abstract class AbstractLostItemsService {
         this.WORKFLOW_TAG_ITEM_NOTE_TYPE = config.getFolio().getItemNotes().getLostItemWorkflowTag();
     }
     
-    List<PurchaseRequest> loadFolioLostItems(Boolean inWorkflow) { 
-        return loadFolioLostItems(inWorkflow, null);
-    }
-
-    List<PurchaseRequest> loadFolioLostItems(Boolean inWorkflow, Integer limit) { 
-        log.debug("Loading lost items with inWorkflow: " + inWorkflow);
-        String queryString =  
-            "query=("
-            + "(statisticalCodeIds=" + LOST_CODE + ") ";
-        if (inWorkflow != null) {
-            if (inWorkflow.booleanValue()) {
-                queryString += "and (statisticalCodeIds=" + IN_WORKFLOW_CODE + ") ";
-            }
-            else {
-                queryString += "not (statisticalCodeIds=" + IN_WORKFLOW_CODE + ") ";
-            }
-        }
-        queryString += ")";
-        return loadFolioItemsAsPurchaseRequests(queryString, limit);
-    }
-
     List<PurchaseRequest> loadFolioItemsAsPurchaseRequests(String queryString, Integer limit) { 
         log.debug("query string: " + queryString);
         String url = "/inventory/items";
@@ -73,9 +52,8 @@ abstract class AbstractLostItemsService {
         return purchaseRequests;
     }
 
-    String buildWorkflowPhrase(boolean inWorkflow) {
-        String prefix = inWorkflow ? " and" : " not";
-        return prefix + " (statisticalCodeIds=" + IN_WORKFLOW_CODE + ") ";
+    String buildWorkflowPhrase() {
+        return " (statisticalCodeIds=" + IN_WORKFLOW_CODE + ") ";
     }
 
     JSONObject getHoldingRecord(String id) { 

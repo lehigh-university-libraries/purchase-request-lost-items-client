@@ -74,6 +74,11 @@ public class PropertiesConfig {
          */
         private String[] newLostItemsStatuses;
 
+        /**
+         * How many items at a time currently in workflow to load from FOLIO when the schedule is triggered.  Empty for no limit.
+         */
+        private Integer workflowItemsLimit = null;
+
         private StatisticalCodes statisticalCodes;
         private ItemNotes itemNotes;
 
