@@ -38,9 +38,7 @@ abstract class AbstractLostItemsService {
 
     List<PurchaseRequest> loadFolioLostItems(Boolean inWorkflow, Integer limit) { 
         log.debug("Loading lost items with inWorkflow: " + inWorkflow);
-        List<PurchaseRequest> purchaseRequests = new ArrayList<PurchaseRequest>();
-        String url = "/inventory/items";
-        String queryString = buildLimitPhrase(limit) + 
+        String queryString =  
             "query=("
             + "(statisticalCodeIds=" + LOST_CODE + ") ";
         if (inWorkflow != null) {
@@ -52,10 +50,17 @@ abstract class AbstractLostItemsService {
             }
         }
         queryString += ")";
+        return loadFolioItemsAsPurchaseRequests(queryString, limit);
+    }
+
+    List<PurchaseRequest> loadFolioItemsAsPurchaseRequests(String queryString, Integer limit) { 
         log.debug("query string: " + queryString);
+        String url = "/inventory/items";
+        List<PurchaseRequest> purchaseRequests = new ArrayList<PurchaseRequest>();
         try {
-            JSONObject responseObject = folio.executeGet(url, queryString);
+            JSONObject responseObject = folio.executeGet(url, queryString, limit);
             JSONArray items = responseObject.getJSONArray("items");
+            log.debug("Found " + items.length() + " results.");
             for (Object itemObject: items) {
                 JSONObject item = (JSONObject)itemObject;
                 PurchaseRequest purchaseRequest = parseItem(item);
@@ -68,8 +73,9 @@ abstract class AbstractLostItemsService {
         return purchaseRequests;
     }
 
-    private String buildLimitPhrase(Integer limit) {
-        return limit == null ? "" : "limit=" + limit.intValue() + '&';
+    String buildWorkflowPhrase(boolean inWorkflow) {
+        String prefix = inWorkflow ? " and" : " not";
+        return prefix + " (statisticalCodeIds=" + IN_WORKFLOW_CODE + ") ";
     }
 
     JSONObject getHoldingRecord(String id) { 

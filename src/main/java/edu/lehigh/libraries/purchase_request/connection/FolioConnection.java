@@ -87,12 +87,19 @@ public class FolioConnection {
     }
 
     public JSONObject executeGet(String url, String queryString) throws Exception {
-        HttpUriRequest getRequest = RequestBuilder.get()
+        return executeGet(url, queryString, null);
+    }
+
+    public JSONObject executeGet(String url, String queryString, Integer limit) throws Exception {
+        RequestBuilder builder = RequestBuilder.get()
             .setUri(config.getFolio().getOkapiBaseUrl() + url)
             .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
             .setHeader(TOKEN_HEADER, token)
-            .addParameter("query", queryString)
-            .build();
+            .addParameter("query", queryString);
+        if (limit != null) {
+            builder.addParameter("limit", limit.toString());
+        }    
+        HttpUriRequest getRequest = builder.build();
 
         CloseableHttpResponse response;
         response = client.execute(getRequest);

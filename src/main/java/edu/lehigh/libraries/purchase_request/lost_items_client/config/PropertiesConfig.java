@@ -69,6 +69,11 @@ public class PropertiesConfig {
          */
         private Integer newLostItemsLimit = null;
 
+        /**
+         * Comma-separated list of item status values that should trigger the workflow
+         */
+        private String[] newLostItemsStatuses;
+
         private StatisticalCodes statisticalCodes;
         private ItemNotes itemNotes;
 

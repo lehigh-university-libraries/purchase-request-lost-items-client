@@ -1,6 +1,8 @@
 package edu.lehigh.libraries.purchase_request.lost_items_client.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -16,18 +18,20 @@ import lombok.extern.slf4j.Slf4j;
 public class MonitorNewLostItemsService extends AbstractLostItemsService {
 
     private final Integer QUERY_LIMIT;
+    private final String[] STATUSES;
 
     public MonitorNewLostItemsService(PropertiesConfig config) throws Exception {
         super(config);
         log.info("Started MonitorNewLostItemsService.");
 
         QUERY_LIMIT = config.getFolio().getNewLostItemsLimit();
+        STATUSES = config.getFolio().getNewLostItemsStatuses();
     }
     
     @Scheduled(cron = "${lost-items-client.schedule.new-lost-items}")
     public void triggerMonitor() {
         log.debug("Schedule triggered: checking for lost items.");
-        List<PurchaseRequest> purchaseRequests = loadFolioLostItems(Boolean.FALSE, QUERY_LIMIT);
+        List<PurchaseRequest> purchaseRequests = loadNewLostItems();
 
         if (purchaseRequests.size() > 0) {
             log.info("Sending " + purchaseRequests.size() + " new purchase requests.");
@@ -40,6 +44,21 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
                 }
             }
         }
+    }
+
+    private List<PurchaseRequest> loadNewLostItems() {
+        String queryString = "("
+            + buildStatusPhrase()
+            + buildWorkflowPhrase(false)
+            + ")";
+        return loadFolioItemsAsPurchaseRequests(queryString, QUERY_LIMIT);
+    }
+
+    private String buildStatusPhrase() {
+        String phrase = Stream.of(STATUSES)
+            .map(status -> "status=\"" + status + "\"")
+            .collect(Collectors.joining(" or "));
+        return "(" + phrase + ")";
     }
     
     private void markItemSubmittedToWorkflow(PurchaseRequest purchaseRequest) {
