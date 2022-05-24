@@ -33,10 +33,15 @@ abstract class AbstractLostItemsService {
     }
     
     List<PurchaseRequest> loadFolioLostItems(Boolean inWorkflow) { 
+        return loadFolioLostItems(inWorkflow, null);
+    }
+
+    List<PurchaseRequest> loadFolioLostItems(Boolean inWorkflow, Integer limit) { 
         log.debug("Loading lost items with inWorkflow: " + inWorkflow);
         List<PurchaseRequest> purchaseRequests = new ArrayList<PurchaseRequest>();
         String url = "/inventory/items";
-        String queryString = "query=("
+        String queryString = buildLimitPhrase(limit) + 
+            "query=("
             + "(statisticalCodeIds=" + LOST_CODE + ") ";
         if (inWorkflow != null) {
             if (inWorkflow.booleanValue()) {
@@ -47,6 +52,7 @@ abstract class AbstractLostItemsService {
             }
         }
         queryString += ")";
+        log.debug("query string: " + queryString);
         try {
             JSONObject responseObject = folio.executeGet(url, queryString);
             JSONArray items = responseObject.getJSONArray("items");
@@ -60,6 +66,10 @@ abstract class AbstractLostItemsService {
             log.error("Exception querying for lost items: ", e);
         }
         return purchaseRequests;
+    }
+
+    private String buildLimitPhrase(Integer limit) {
+        return limit == null ? "" : "limit=" + limit.intValue() + '&';
     }
 
     JSONObject getHoldingRecord(String id) { 

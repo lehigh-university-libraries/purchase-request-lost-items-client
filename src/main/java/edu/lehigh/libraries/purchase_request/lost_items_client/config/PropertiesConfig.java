@@ -64,6 +64,11 @@ public class PropertiesConfig {
          */
         private String okapiBaseUrl;
 
+        /**
+         * How many new lost items at a time to load from FOLIO when the schedule is triggered.  Empty for no limit.
+         */
+        private Integer newLostItemsLimit = null;
+
         private StatisticalCodes statisticalCodes;
         private ItemNotes itemNotes;
 

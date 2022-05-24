@@ -15,15 +15,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MonitorNewLostItemsService extends AbstractLostItemsService {
 
+    private final Integer QUERY_LIMIT;
+
     public MonitorNewLostItemsService(PropertiesConfig config) throws Exception {
         super(config);
         log.info("Started MonitorNewLostItemsService.");
+
+        QUERY_LIMIT = config.getFolio().getNewLostItemsLimit();
     }
     
     @Scheduled(cron = "${lost-items-client.schedule.new-lost-items}")
     public void triggerMonitor() {
         log.debug("Schedule triggered: checking for lost items.");
-        List<PurchaseRequest> purchaseRequests = checkForNewLostItems();
+        List<PurchaseRequest> purchaseRequests = loadFolioLostItems(Boolean.FALSE, QUERY_LIMIT);
 
         if (purchaseRequests.size() > 0) {
             log.info("Sending " + purchaseRequests.size() + " new purchase requests.");
@@ -38,10 +42,6 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         }
     }
     
-    private List<PurchaseRequest> checkForNewLostItems() {
-        return loadFolioLostItems(Boolean.FALSE);
-    }
-
     private void markItemSubmittedToWorkflow(PurchaseRequest purchaseRequest) {
         // Mark the item submitted
         JSONObject item = purchaseRequest.getExistingFolioItem();
