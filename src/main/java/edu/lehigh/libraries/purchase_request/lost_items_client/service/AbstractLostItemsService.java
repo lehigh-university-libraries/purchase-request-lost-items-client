@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 abstract class AbstractLostItemsService {
 
-    final String LOST_CODE;
     final String IN_WORKFLOW_CODE;
     final String WORKFLOW_TAG_ITEM_NOTE_TYPE;
 
@@ -27,7 +26,6 @@ abstract class AbstractLostItemsService {
     WorkflowConnection workflow;
  
     AbstractLostItemsService(PropertiesConfig config) {
-        this.LOST_CODE = config.getFolio().getStatisticalCodes().getLost();
         this.IN_WORKFLOW_CODE = config.getFolio().getStatisticalCodes().getInWorkflow();
         this.WORKFLOW_TAG_ITEM_NOTE_TYPE = config.getFolio().getItemNotes().getLostItemWorkflowTag();
     }
