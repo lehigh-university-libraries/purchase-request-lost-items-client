@@ -16,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 abstract class AbstractLostItemsService {
 
-    final String IN_WORKFLOW_CODE;
-    final String WORKFLOW_TAG_ITEM_NOTE_TYPE;
+    final String FOLIO_CODE_IN_WORKFLOW;
+    final String FOLIO_ITEM_NOTE_WORKFLOW_TAG;
 
     @Autowired
     FolioConnection folio;
@@ -26,8 +26,8 @@ abstract class AbstractLostItemsService {
     WorkflowConnection workflow;
  
     AbstractLostItemsService(PropertiesConfig config) {
-        this.IN_WORKFLOW_CODE = config.getFolio().getStatisticalCodes().getInWorkflow();
-        this.WORKFLOW_TAG_ITEM_NOTE_TYPE = config.getFolio().getItemNotes().getLostItemWorkflowTag();
+        this.FOLIO_CODE_IN_WORKFLOW = config.getFolio().getStatisticalCodes().getInWorkflow();
+        this.FOLIO_ITEM_NOTE_WORKFLOW_TAG = config.getFolio().getItemNotes().getLostItemWorkflowTag();
     }
     
     List<PurchaseRequest> loadFolioItemsAsPurchaseRequests(String queryString, Integer limit) { 
@@ -51,7 +51,7 @@ abstract class AbstractLostItemsService {
     }
 
     String buildWorkflowPhrase() {
-        return " (statisticalCodeIds=" + IN_WORKFLOW_CODE + ") ";
+        return " (statisticalCodeIds=" + FOLIO_CODE_IN_WORKFLOW + ") ";
     }
 
     JSONObject getHoldingRecord(String id) { 
@@ -98,7 +98,7 @@ abstract class AbstractLostItemsService {
         JSONArray notes = item.getJSONArray("notes");
         for (Object noteObject: notes) {
             JSONObject note = (JSONObject)noteObject;
-            if (WORKFLOW_TAG_ITEM_NOTE_TYPE.equals(note.getString("itemNoteTypeId"))) {
+            if (FOLIO_ITEM_NOTE_WORKFLOW_TAG.equals(note.getString("itemNoteTypeId"))) {
                 purchaseRequest.setKey(note.getString("note"));
             }
         }

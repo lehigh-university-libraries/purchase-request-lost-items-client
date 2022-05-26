@@ -17,12 +17,18 @@ import lombok.extern.slf4j.Slf4j;
 public class MonitorWorkflowService extends AbstractLostItemsService {
     
     private final Integer QUERY_LIMIT;
+    private final String WORKFLOW_APPROVED_STATUS;
+    private final String WORKFLOW_DENIED_STATUS;
+    private final String FOLIO_ITEM_NOTE_WORKFLOW_COMMENT;
     private final String FOLIO_INSTANCE_STATUS_WITHDRAWN;
 
     public MonitorWorkflowService(PropertiesConfig config) throws Exception {
         super(config);
 
         this.QUERY_LIMIT = config.getFolio().getWorkflowItemsLimit();
+        this.WORKFLOW_APPROVED_STATUS = config.getWorkflowServer().getApprovedStatus();
+        this.WORKFLOW_DENIED_STATUS = config.getWorkflowServer().getDeniedStatus();
+        this.FOLIO_ITEM_NOTE_WORKFLOW_COMMENT = config.getFolio().getItemNotes().getLostItemWorkflowComment();
         this.FOLIO_INSTANCE_STATUS_WITHDRAWN = config.getFolio().getInstanceStatusWithdrawn();
 
         log.info("Started MonitorWorkflowService.");
@@ -61,11 +67,11 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     }
 
     private boolean isApproved(PurchaseRequest purchaseRequest) {
-        return APPROVED_STATUS.equals(purchaseRequest.getStatus());
+        return WORKFLOW_APPROVED_STATUS.equals(purchaseRequest.getStatus());
     }
 
     private boolean isDenied(PurchaseRequest purchaseRequest) {
-        return DENIED_STATUS.equals(purchaseRequest.getStatus());
+        return WORKFLOW_DENIED_STATUS.equals(purchaseRequest.getStatus());
     }
 
     private void handleApproval(PurchaseRequest purchaseRequest) {
@@ -153,7 +159,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         Iterator<?> it = statisticalCodeIds.iterator();
         while (it.hasNext()) {
             String code = (String)it.next();
-            if (IN_WORKFLOW_CODE.equals(code)) {
+            if (FOLIO_CODE_IN_WORKFLOW.equals(code)) {
                 it.remove();
                 break;
             }
@@ -165,7 +171,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         Iterator<?> it = notes.iterator();
         while (it.hasNext()) {
             JSONObject note = (JSONObject)it.next();
-            if (WORKFLOW_TAG_ITEM_NOTE_TYPE.equals(note.getString("itemNoteTypeId"))) {
+            if (FOLIO_ITEM_NOTE_WORKFLOW_TAG.equals(note.getString("itemNoteTypeId"))) {
                 it.remove();
                 break;
             }
@@ -185,7 +191,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     private void addDescriptiveNote(JSONObject item, String noteText) {
         JSONArray notes = item.getJSONArray("notes");
         JSONObject note = new JSONObject();
-        note.put("itemNoteTypeId", WORKFLOW_COMMENT_ITEM_NOTE_TYPE);
+        note.put("itemNoteTypeId", FOLIO_ITEM_NOTE_WORKFLOW_COMMENT);
         note.put("note", noteText);
         note.put("staffOnly", true);
         notes.put(note);        

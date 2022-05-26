@@ -67,13 +67,13 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         // Mark the item submitted
         JSONObject item = purchaseRequest.getExistingFolioItem();
         JSONArray statisticalCodeIds = item.getJSONArray("statisticalCodeIds");
-        statisticalCodeIds.put(IN_WORKFLOW_CODE);
+        statisticalCodeIds.put(FOLIO_CODE_IN_WORKFLOW);
 
         // Record the PR key
         String key = purchaseRequest.getKey();
         JSONArray notes = item.getJSONArray("notes");
         JSONObject note = new JSONObject();
-        note.put("itemNoteTypeId", WORKFLOW_TAG_ITEM_NOTE_TYPE);
+        note.put("itemNoteTypeId", FOLIO_ITEM_NOTE_WORKFLOW_TAG);
         note.put("note", key);
         note.put("staffOnly", true);
         notes.put(note);
