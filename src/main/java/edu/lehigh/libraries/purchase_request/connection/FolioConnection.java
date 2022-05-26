@@ -3,6 +3,7 @@ package edu.lehigh.libraries.purchase_request.connection;
 import edu.lehigh.libraries.purchase_request.lost_items_client.config.PropertiesConfig;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -117,7 +118,7 @@ public class FolioConnection {
             .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
             .setHeader(TOKEN_HEADER, token)
             .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
-            .setEntity(new StringEntity(data.toString()))
+            .setEntity(new StringEntity(data.toString(), StandardCharsets.UTF_8.name()))
             .build();
 
         CloseableHttpResponse response;
