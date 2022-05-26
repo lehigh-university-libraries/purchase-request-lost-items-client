@@ -50,7 +50,8 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         String queryString = "("
             + buildStatusPhrase()
             + " not " + buildWorkflowPhrase()
-            + ")";
+            + ")"
+            + " sortby hrid";
         return loadFolioItemsAsPurchaseRequests(queryString, QUERY_LIMIT);
     }
 
