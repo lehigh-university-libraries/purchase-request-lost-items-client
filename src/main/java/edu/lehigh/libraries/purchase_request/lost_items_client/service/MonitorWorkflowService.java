@@ -98,6 +98,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         else {
             notePurchaseDenied(item, purchaseRequest);
         }
+        addCirculationNote(item);
         updateItemInFolio(purchaseRequest, item);
     }
 
@@ -191,6 +192,15 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         note.put("note", noteText);
         note.put("staffOnly", true);
         notes.put(note);        
+    }
+
+    private void addCirculationNote(JSONObject item) {
+        JSONArray circulationNotes = item.getJSONArray("circulationNotes");
+        JSONObject note = new JSONObject();
+        note.put("note", "Route to cataloging. Item was withdrawn.");
+        note.put("noteType", "Check in");
+        note.put("staffOnly", true);
+        circulationNotes.put(note);
     }
 
     private void setSuppressDiscovery(JSONObject record, boolean value) {
