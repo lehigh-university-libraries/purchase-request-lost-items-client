@@ -79,6 +79,11 @@ public class PropertiesConfig {
          */
         private Integer workflowItemsLimit = null;
 
+        /**
+         * UUID of the FOLIO instance status representing a withdrawn record
+         */
+        private String instanceStatusWithdrawn;
+
         private StatisticalCodes statisticalCodes;
         private ItemNotes itemNotes;
 

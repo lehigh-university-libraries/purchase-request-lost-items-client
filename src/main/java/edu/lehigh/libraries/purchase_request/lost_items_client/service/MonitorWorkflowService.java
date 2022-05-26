@@ -17,17 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 public class MonitorWorkflowService extends AbstractLostItemsService {
     
     private final Integer QUERY_LIMIT;
-    private final String APPROVED_STATUS;
-    private final String DENIED_STATUS;
-    private final String WORKFLOW_COMMENT_ITEM_NOTE_TYPE;
+    private final String FOLIO_INSTANCE_STATUS_WITHDRAWN;
 
     public MonitorWorkflowService(PropertiesConfig config) throws Exception {
         super(config);
 
         this.QUERY_LIMIT = config.getFolio().getWorkflowItemsLimit();
-        this.APPROVED_STATUS = config.getWorkflowServer().getApprovedStatus();
-        this.DENIED_STATUS = config.getWorkflowServer().getDeniedStatus();
-        this.WORKFLOW_COMMENT_ITEM_NOTE_TYPE = config.getFolio().getItemNotes().getLostItemWorkflowComment();
+        this.FOLIO_INSTANCE_STATUS_WITHDRAWN = config.getFolio().getInstanceStatusWithdrawn();
 
         log.info("Started MonitorWorkflowService.");
     }
@@ -117,6 +113,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
                 log.debug("Shadow the instance record.");
                 JSONObject instance = getInstance(instanceId);
                 setSuppressDiscovery(instance, true);
+                setInstanceStatusWithdrawn(instance);
                 updateInstanceInFolio(instance);
             }
         }
@@ -205,6 +202,10 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
 
     private void setSuppressDiscovery(JSONObject record, boolean value) {
         record.put("discoverySuppress", value);
+    }
+
+    private void setInstanceStatusWithdrawn(JSONObject instance) {
+        instance.put("statusId", FOLIO_INSTANCE_STATUS_WITHDRAWN);
     }
 
 }
