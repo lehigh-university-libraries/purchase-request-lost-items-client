@@ -75,30 +75,33 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     private void handleApproval(PurchaseRequest purchaseRequest) {
         log.info("Purchase approved: " + purchaseRequest);
         JSONObject item = purchaseRequest.getExistingFolioItem();
-        setItemStatus(item, "On order");
-        removeStatisticalCode(item);
-        removeStatusNote(item);
-        notePurchaseApproved(item, purchaseRequest);
-
-        // Update it in FOLIO
-        log.debug("Calling FOLIO to mark item as approved.");
-        updateItemInFolio(purchaseRequest, item);
+        withdrawItem(item, purchaseRequest, true);
+        maybeShadowHoldingAndInstance(item);
     }
 
     private void handleDenial(PurchaseRequest purchaseRequest) {
         log.info("Purchase denied: " + purchaseRequest);
 
         JSONObject item = purchaseRequest.getExistingFolioItem();
+        withdrawItem(item, purchaseRequest, false);
+        maybeShadowHoldingAndInstance(item);
+    }
+
+    private void withdrawItem(JSONObject item, PurchaseRequest purchaseRequest, boolean purchaseApproved) {
         setItemStatus(item, "Withdrawn");
         setSuppressDiscovery(item, true);
         removeStatisticalCode(item);
         removeStatusNote(item);
-        notePurchaseDenied(item, purchaseRequest);
-
-        // Update it in FOLIO
-        log.debug("Calling FOLIO to mark item as denied.");
+        if (purchaseApproved) {
+            notePurchaseApproved(item, purchaseRequest);
+        }
+        else {
+            notePurchaseDenied(item, purchaseRequest);
+        }
         updateItemInFolio(purchaseRequest, item);
+    }
 
+    private void maybeShadowHoldingAndInstance(JSONObject item) {
         // Shadow the holdings record if appropriate
         String holdingRecordId = item.getString("holdingsRecordId");
         if (!hasUnsuppressedItems(holdingRecordId)) {
