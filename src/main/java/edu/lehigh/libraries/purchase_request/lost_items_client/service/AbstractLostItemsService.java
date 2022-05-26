@@ -116,7 +116,7 @@ abstract class AbstractLostItemsService {
         try {
             boolean success = folio.executePut(url, item);
             if (success) {
-                log.debug("Successfully updated FOLIO item.");
+                log.info("Successfully updated FOLIO item.");
             }
             else {
                 log.warn("Failed to update FOLIO item.");
@@ -132,7 +132,7 @@ abstract class AbstractLostItemsService {
         try {
             boolean success = folio.executePut(url, holding);
             if (success) {
-                log.debug("Successfully updated FOLIO holding.");
+                log.info("Successfully updated FOLIO holding.");
             }
             else {
                 log.warn("Failed to update FOLIO holding.");
@@ -148,7 +148,7 @@ abstract class AbstractLostItemsService {
         try {
             boolean success = folio.executePut(url, instance);
             if (success) {
-                log.debug("Successfully updated FOLIO instance.");
+                log.info("Successfully updated FOLIO instance.");
             }
             else {
                 log.warn("Failed to update FOLIO instance.");
