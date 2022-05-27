@@ -73,23 +73,21 @@ Follow the [deployment instructions for the Workflow Proxy Server](https://githu
 
 ## Initial Setup
 
-Within FOLIO's Settings application, make the following changes.  The wording of each value is just a suggestion.
+1. Within FOLIO's Settings application, make the following changes.  The wording of each value is just a suggestion.
 
-* Inventory > Instances, Holdings, Items > Statistical Code Types
-    * Create a new type, `LOST (Lost Item Workflow)`.
+    * Inventory > Instances, Holdings, Items > Statistical Code Types
+        * Create a new type, `LOST (Lost Item Workflow)`.
 
-* Inventory > Instances, Holdings, Items > Statistical Codes
-    * Create a new code, `lost-workflow`, with name `In Lost Item Workflow`, using the statistical code type just created.
+    * Inventory > Instances, Holdings, Items > Statistical Codes
+        * Create a new code, `lost-workflow`, with name `In Lost Item Workflow`, using the statistical code type just created.
 
-* Inventory > Items > Item Note Type
-    * Create a new type, `Lost Item Workflow Tag`.
-    * Create a new type, `Lost Item Workflow Comment`.
+    * Inventory > Items > Item Note Type
+        * Create a new type, `Lost Item Workflow Tag`.
+        * Create a new type, `Lost Item Workflow Comment`.
 
-Create a Workflow Proxy Server user for API access by the Lost Items Client.
+1. Create a Workflow Proxy Server user for API access by the Lost Items Client.  See [Client User Management](https://github.com/lehigh-university-libraries/purchase-request-workflow-proxy-server#client-user-management).
 
-**** HOW - document in server documentation ****
-
-Set up the [configuration file](#configuration).
+1. Set up the [configuration file](#configuration).
 
 ## Configuration
 
