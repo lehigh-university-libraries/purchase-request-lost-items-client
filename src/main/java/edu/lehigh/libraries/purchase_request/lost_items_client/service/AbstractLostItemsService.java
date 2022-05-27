@@ -26,7 +26,7 @@ abstract class AbstractLostItemsService {
     WorkflowConnection workflow;
  
     AbstractLostItemsService(PropertiesConfig config) {
-        this.FOLIO_CODE_IN_WORKFLOW = config.getFolio().getStatisticalCodes().getInWorkflow();
+        this.FOLIO_CODE_IN_WORKFLOW = config.getFolio().getStatisticalCodeInWorkflow();
         this.FOLIO_ITEM_NOTE_WORKFLOW_TAG = config.getFolio().getItemNotes().getLostItemWorkflowTag();
     }
     

@@ -84,23 +84,12 @@ public class PropertiesConfig {
          */
         private String instanceStatusWithdrawn;
 
-        private StatisticalCodes statisticalCodes;
+        /**
+         * FOLIO UUID for the statistical code for items added to the workflow.
+         */
+        private String statisticalCodeInWorkflow;
+
         private ItemNotes itemNotes;
-
-        @Getter @Setter
-        public static class StatisticalCodes {
-
-            /**
-             * FOLIO UUID for the statistical code for items confirmed lost.
-             */
-            private String lost;
-
-            /**
-             * FOLIO UUID for the statistical code for items added to the workflow.
-             */
-            private String inWorkflow;
-
-        }
 
         @Getter @Setter
         public static class ItemNotes {
