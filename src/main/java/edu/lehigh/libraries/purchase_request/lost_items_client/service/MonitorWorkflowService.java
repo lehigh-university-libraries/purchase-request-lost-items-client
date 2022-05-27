@@ -119,7 +119,9 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
                 log.debug("Shadow the instance record.");
                 JSONObject instance = getInstance(instanceId);
                 setSuppressDiscovery(instance, true);
-                setInstanceStatusWithdrawn(instance);
+                if (FOLIO_INSTANCE_STATUS_WITHDRAWN != null) {
+                    setInstanceStatusWithdrawn(instance);
+                }
                 updateInstanceInFolio(instance);
             }
         }

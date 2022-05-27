@@ -80,9 +80,9 @@ public class PropertiesConfig {
         private Integer workflowItemsLimit = null;
 
         /**
-         * UUID of the FOLIO instance status representing a withdrawn record
+         * UUID of the FOLIO instance status representing a withdrawn record.  Empty to skip setting the instance status.
          */
-        private String instanceStatusWithdrawn;
+        private String instanceStatusWithdrawn = null;
 
         /**
          * FOLIO UUID for the statistical code for items added to the workflow.

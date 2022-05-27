@@ -118,7 +118,7 @@ These UUIDs can be determined with calls to the FOLIO APIs below.  Make sure to 
 
 | Property | Description | Required |
 | -- | -- | -- |
-| lost-items-client.folio.instance-status-withdrawn ***** make this optional **** | UUID corresponding to the FOLIO instance status that indicates a record's holdings should be set or withdrawn in OCLC. Determine from the [FOLIO Get /instance-statuses API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/instance-status.html#instance_statuses_get). | Y |
+| lost-items-client.folio.instance-status-withdrawn  | UUID corresponding to the FOLIO instance status that indicates a record's holdings should be set or withdrawn in OCLC. Determine from the [FOLIO Get /instance-statuses API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/instance-status.html#instance_statuses_get).  If omitted, the client will not change the instance status. | N |
 | lost-items-client.folio.statistical-code-in-workflow | UUID corresponding to the `lost-workflow` statistical code created above.  Determine from the [FOLIO Get /statistical-codes API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/statistical-code.html#statistical_codes_get). | Y |
 | lost-items-client.folio.item-notes.lost-item-workflow-tag | UUID corresponding to the `Lost Item Workflow Tag` item note type created above.  Determine from the [FOLIO Get /item-note-types API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/item-note-type.html#item_note_types_get). | Y |
 | lost-items-client.folio.item-notes.lost-item-workflow-comment | UUID corresponding to the `Lost Item Workflow Comment` item note type created above.  See prior API call. | Y |
