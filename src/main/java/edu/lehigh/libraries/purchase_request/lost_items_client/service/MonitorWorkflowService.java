@@ -185,7 +185,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
 
     private void notePurchaseDenied(JSONObject item, PurchaseRequest purchaseRequest) {
         addDescriptiveNote(item, 
-            "At " + purchaseRequest.getUpdateDate() + " a selector decided to withdraw this lost item.");
+            "At " + purchaseRequest.getUpdateDate() + " a selector decided NOT to re-purchase this lost item.");
     }
 
     private void addDescriptiveNote(JSONObject item, String noteText) {
