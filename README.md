@@ -93,8 +93,6 @@ Follow the [deployment instructions for the Workflow Proxy Server](https://githu
 
 Copy/rename `application.properties.example` to `application.properties` and configure its parameters.  See example values in that file.
 
-********* TODO CREATE THAT FILE ***********
-
 | Property | Description | Required |
 | -- | -- | -- |
 | lost-items-client.enabled | Enable the application. Must be 'true'.  | Y |

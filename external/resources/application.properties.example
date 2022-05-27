@@ -1,0 +1,41 @@
+# *** This file contains example configuration properties for application.properties.  See README.md. *** 
+
+
+# General
+
+lost-items-client.enabled=true
+lost-items-client.schedule.new-lost-items=0 0 * * * * 
+lost-items-client.schedule.workflow-decisions=0 0 * * * *
+
+
+# FOLIO
+
+lost-items-client.folio.username=folio_username
+lost-items-client.folio.password=abc123
+lost-items-client.folio.tenantId=SOMEID
+lost-items-client.folio.okapiBaseUrl=https://subdomain-okapi.folio.indexdata.com
+lost-items-client.folio.new-lost-items-statuses=Declared lost,Long missing
+lost-items-client.folio.new-lost-items-limit=10
+
+
+# FOLIO UUIDs
+
+lost-items-client.folio.instance-status-withdrawn=12345678-1234-1234-1234-1234567890ab
+lost-items-client.folio.statistical-code-in-workflow=12345678-1234-1234-1234-1234567890ab
+lost-items-client.folio.item-notes.lost-item-workflow-tag=12345678-1234-1234-1234-1234567890ab
+lost-items-client.folio.item-notes.lost-item-workflow-comment=12345678-1234-1234-1234-1234567890ab
+
+
+# Workflow Proxy Server
+
+lost-items-client.workflow-server.username=workflow_username
+lost-items-client.workflow-server.password=abc123
+lost-items-client.workflow-server.base-url=https://hostname.someuniversity.edu/workflow
+lost-items-client.workflow-server.approved-status=Approved
+lost-items-client.workflow-server.denied-status=Denied
+
+
+# Debugging
+
+logging.level.edu.lehigh.libraries.purchase_request=DEBUG
+logging.file.name=log/lost-items.log
