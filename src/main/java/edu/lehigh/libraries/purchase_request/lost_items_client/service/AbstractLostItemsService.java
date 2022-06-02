@@ -18,6 +18,7 @@ abstract class AbstractLostItemsService {
 
     final String FOLIO_CODE_IN_WORKFLOW;
     final String FOLIO_ITEM_NOTE_WORKFLOW_TAG;
+    final String FOLIO_ITEM_NOTE_WORKFLOW_PATRON_REQUESTING;
 
     @Autowired
     FolioConnection folio;
@@ -28,6 +29,7 @@ abstract class AbstractLostItemsService {
     AbstractLostItemsService(PropertiesConfig config) {
         this.FOLIO_CODE_IN_WORKFLOW = config.getFolio().getStatisticalCodeInWorkflow();
         this.FOLIO_ITEM_NOTE_WORKFLOW_TAG = config.getFolio().getItemNotes().getLostItemWorkflowTag();
+        this.FOLIO_ITEM_NOTE_WORKFLOW_PATRON_REQUESTING = config.getFolio().getItemNotes().getLostItemWorkflowPatronRequesting();
     }
     
     List<PurchaseRequest> loadFolioItemsAsPurchaseRequests(String queryString, Integer limit) { 
@@ -98,8 +100,12 @@ abstract class AbstractLostItemsService {
         JSONArray notes = item.getJSONArray("notes");
         for (Object noteObject: notes) {
             JSONObject note = (JSONObject)noteObject;
-            if (FOLIO_ITEM_NOTE_WORKFLOW_TAG.equals(note.getString("itemNoteTypeId"))) {
+            String typeId = note.getString("itemNoteTypeId");
+            if (FOLIO_ITEM_NOTE_WORKFLOW_TAG.equals(typeId)) {
                 purchaseRequest.setKey(note.getString("note"));
+            }
+            if (FOLIO_ITEM_NOTE_WORKFLOW_PATRON_REQUESTING.equals(typeId)) {
+                purchaseRequest.setRequesterUsername(note.getString("note"));
             }
         }
 

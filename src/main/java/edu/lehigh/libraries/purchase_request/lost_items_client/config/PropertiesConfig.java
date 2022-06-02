@@ -104,6 +104,11 @@ public class PropertiesConfig {
              */
             private String lostItemWorkflowComment;
 
+            /**
+             * FOLIO UUID for the item note type for the username of the patron requesting this item.
+             */
+            private String lostItemWorkflowPatronRequesting;
+
         }
 
     }
