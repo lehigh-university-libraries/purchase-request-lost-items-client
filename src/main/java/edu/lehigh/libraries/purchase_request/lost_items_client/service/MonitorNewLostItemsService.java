@@ -19,6 +19,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
 
     private final Integer QUERY_LIMIT;
     private final String[] STATUSES;
+    private final boolean FOLIO_PATRON_REQUESTING_ONLY;
 
     public MonitorNewLostItemsService(PropertiesConfig config) throws Exception {
         super(config);
@@ -26,6 +27,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
 
         QUERY_LIMIT = config.getFolio().getNewLostItemsLimit();
         STATUSES = config.getFolio().getNewLostItemsStatuses();
+        FOLIO_PATRON_REQUESTING_ONLY = config.getFolio().isNewLostItemsPatronRequestingOnly();
     }
     
     @Scheduled(cron = "${lost-items-client.schedule.new-lost-items}")
@@ -49,6 +51,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
     private List<PurchaseRequest> loadNewLostItems() {
         String queryString = "("
             + buildStatusPhrase()
+            + buildPatronRequestingPhrase()
             + " not " + buildWorkflowPhrase()
             + ")"
             + " and discoverySuppress=false" 
@@ -61,6 +64,15 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
             .map(status -> "status=\"" + status + "\"")
             .collect(Collectors.joining(" or "));
         return "(" + phrase + ")";
+    }
+
+    private String buildPatronRequestingPhrase() {
+        if (FOLIO_PATRON_REQUESTING_ONLY) {
+            return " and (notes=\"" + FOLIO_ITEM_NOTE_WORKFLOW_PATRON_REQUESTING + "\")";
+        }
+        else {
+            return "";
+        }
     }
     
     private void markItemSubmittedToWorkflow(PurchaseRequest purchaseRequest) {

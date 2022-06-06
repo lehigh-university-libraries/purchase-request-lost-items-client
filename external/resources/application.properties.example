@@ -15,6 +15,7 @@ lost-items-client.folio.password=abc123
 lost-items-client.folio.tenantId=SOMEID
 lost-items-client.folio.okapiBaseUrl=https://subdomain-okapi.folio.indexdata.com
 lost-items-client.folio.new-lost-items-statuses=Declared lost,Long missing
+lost-items-client.folio.new-lost-items-patron-requesting-only=false
 lost-items-client.folio.new-lost-items-limit=10
 
 

@@ -110,6 +110,7 @@ For connecting to the FOLIO API.
 | lost-items-client.folio.tenantId | Tenant ID for the FOLIO server environment. | Y |
 | lost-items-client.folio.okapiBaseUrl | Base URL for FOLIO OKAPI API calls. | Y |
 | lost-items-client.folio.new-lost-items-statuses | Comma-separated list of [FOLIO item statuses](https://kiwi.docs.folio.org/docs/platform-essentials/item-status/itemstatus/#currently-implemented-item-statuses), any of which should trigger a purchase request. | Y |
+| lost-items-client.folio.new-lost-items-patron-requesting-only |  Limit the FOLIO query to items with a patron requesting note present.  Default is false. | N |
 | lost-items-client.folio.new-lost-items-limit | Number of new lost items to add to the workflow each time the `lost-items-client.schedule.new-lost-items` schedule is triggered.  Default is the FOLIO `limit` parameter default, currently 10. | N |
 
 #### FOLIO UUIDs

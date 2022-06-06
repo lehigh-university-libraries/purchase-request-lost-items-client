@@ -75,6 +75,11 @@ public class PropertiesConfig {
         private String[] newLostItemsStatuses;
 
         /**
+         * Limit the FOLIO query to items with a patron requesting note present.
+         */
+        private boolean newLostItemsPatronRequestingOnly = false;
+
+        /**
          * How many items at a time currently in workflow to load from FOLIO when the schedule is triggered.  Empty for no limit.
          */
         private Integer workflowItemsLimit = null;
