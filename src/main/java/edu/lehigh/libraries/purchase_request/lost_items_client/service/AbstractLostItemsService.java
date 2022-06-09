@@ -20,6 +20,8 @@ abstract class AbstractLostItemsService {
     final String FOLIO_ITEM_NOTE_WORKFLOW_TAG;
     final String FOLIO_ITEM_NOTE_WORKFLOW_PATRON_REQUESTING;
 
+    PropertiesConfig config;
+
     @Autowired
     FolioConnection folio;
 
@@ -27,6 +29,7 @@ abstract class AbstractLostItemsService {
     WorkflowConnection workflow;
  
     AbstractLostItemsService(PropertiesConfig config) {
+        this.config = config;
         this.FOLIO_CODE_IN_WORKFLOW = config.getFolio().getStatisticalCodeInWorkflow();
         this.FOLIO_ITEM_NOTE_WORKFLOW_TAG = config.getFolio().getItemNotes().getLostItemWorkflowTag();
         this.FOLIO_ITEM_NOTE_WORKFLOW_PATRON_REQUESTING = config.getFolio().getItemNotes().getLostItemWorkflowPatronRequesting();
@@ -43,6 +46,7 @@ abstract class AbstractLostItemsService {
             for (Object itemObject: items) {
                 JSONObject item = (JSONObject)itemObject;
                 PurchaseRequest purchaseRequest = parseItem(item);
+                parseItemAdditionalFields(purchaseRequest, item);
                 purchaseRequests.add(purchaseRequest);
             }
         }
@@ -51,6 +55,8 @@ abstract class AbstractLostItemsService {
         }
         return purchaseRequests;
     }
+
+    void parseItemAdditionalFields(PurchaseRequest purchaseRequest, JSONObject item) {}
 
     String buildWorkflowPhrase() {
         return " (statisticalCodeIds=" + FOLIO_CODE_IN_WORKFLOW + ") ";

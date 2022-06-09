@@ -1,8 +1,12 @@
 package edu.lehigh.libraries.purchase_request.lost_items_client.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,6 +24,8 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
     private final Integer QUERY_LIMIT;
     private final String[] STATUSES;
     private final boolean FOLIO_PATRON_REQUESTING_ONLY;
+    
+    private Map<String, String> retentionAgreementCodes;
 
     public MonitorNewLostItemsService(PropertiesConfig config) throws Exception {
         super(config);
@@ -28,6 +34,30 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         QUERY_LIMIT = config.getFolio().getNewLostItemsLimit();
         STATUSES = config.getFolio().getNewLostItemsStatuses();
         FOLIO_PATRON_REQUESTING_ONLY = config.getFolio().isNewLostItemsPatronRequestingOnly();
+    }
+
+    @PostConstruct
+    private void initRetentionAgreementCodes() {
+        log.debug("Initializing retention agreement codes.");
+        final String RETENTION_AGREEMENT_STATISTICAL_CODE_TYPE = this.config.getFolio().getStatisticalCodeTypeRetentionAgreement();
+        this.retentionAgreementCodes = new HashMap<String, String>();
+
+        String url = "/statistical-codes";
+        String queryString = "statisticalCodeTypeId=" + RETENTION_AGREEMENT_STATISTICAL_CODE_TYPE;
+        JSONObject response;
+        try {
+            response = folio.executeGet(url, queryString);
+        }
+        catch (Exception e) {
+            log.error("Could not get statistical codes", e);
+            return;
+        }
+        JSONArray statisticalCodes = response.getJSONArray("statisticalCodes");
+        for (Object statisticalCodeObject : statisticalCodes) {
+            JSONObject statisticalCode = (JSONObject)statisticalCodeObject;
+            this.retentionAgreementCodes.put(statisticalCode.getString("id"), statisticalCode.getString("name"));
+            log.debug("... loaded retention agreement code: " + statisticalCode.getString("name"));
+        }
     }
     
     @Scheduled(cron = "${lost-items-client.schedule.new-lost-items}")
@@ -72,6 +102,19 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         }
         else {
             return "";
+        }
+    }
+
+    @Override
+    void parseItemAdditionalFields(PurchaseRequest purchaseRequest, JSONObject item) {
+        JSONArray statisticalCodes = item.getJSONArray("statisticalCodeIds");
+        for (Object statisticalCodeObject : statisticalCodes) {
+            String statisticalCode = (String)statisticalCodeObject;
+            if (retentionAgreementCodes.containsKey(statisticalCode)) {
+                String name = retentionAgreementCodes.get(statisticalCode);
+                purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
+                    " \n Note Retention Agreement: " + name + ".");
+            }
         }
     }
     

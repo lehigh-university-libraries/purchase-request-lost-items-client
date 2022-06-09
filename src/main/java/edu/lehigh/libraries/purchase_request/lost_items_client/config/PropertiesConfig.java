@@ -94,6 +94,11 @@ public class PropertiesConfig {
          */
         private String statisticalCodeInWorkflow;
 
+        /**
+         * FOLIO UUID for the statistical code type representing retention agreements.
+         */
+        private String statisticalCodeTypeRetentionAgreement = null;
+
         private ItemNotes itemNotes;
 
         @Getter @Setter
