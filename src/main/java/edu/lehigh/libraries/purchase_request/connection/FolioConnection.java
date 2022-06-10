@@ -95,8 +95,10 @@ public class FolioConnection {
         RequestBuilder builder = RequestBuilder.get()
             .setUri(config.getFolio().getOkapiBaseUrl() + url)
             .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
-            .setHeader(TOKEN_HEADER, token)
-            .addParameter("query", queryString);
+            .setHeader(TOKEN_HEADER, token);
+        if (queryString != null) {
+            builder.addParameter("query", queryString);
+        }
         if (limit != null) {
             builder.addParameter("limit", limit.toString());
         }    

@@ -107,6 +107,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
 
     @Override
     void parseItemAdditionalFields(PurchaseRequest purchaseRequest, JSONObject item) {
+        // retention agreements
         JSONArray statisticalCodes = item.getJSONArray("statisticalCodeIds");
         for (Object statisticalCodeObject : statisticalCodes) {
             String statisticalCode = (String)statisticalCodeObject;
@@ -116,8 +117,26 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
                     " \n Note Retention Agreement: " + name + ".");
             }
         }
+
+        // index title from instance record
+        try {
+            String holdingsRecordId = item.getString("holdingsRecordId");
+            String url = "/holdings-storage/holdings/" + holdingsRecordId;
+            JSONObject holdingsRecord = folio.executeGet(url, null);
+            String instanceRecordId= holdingsRecord.getString("instanceId");
+            url = "/inventory/instances/" + instanceRecordId;
+            JSONObject instanceRecord = folio.executeGet(url, null);
+            if (instanceRecord.has("indexTitle")) {
+                String indexTitle = instanceRecord.getString("indexTitle");
+                purchaseRequest.setTitle(indexTitle);
+                log.debug("using indexTitle: " + indexTitle);
+            }
+        }
+        catch (Exception e) {
+            log.error("Could not get index title from instance record.", e);
+        }
     }
-    
+
     private void markItemSubmittedToWorkflow(PurchaseRequest purchaseRequest) {
         // Mark the item submitted
         JSONObject item = purchaseRequest.getExistingFolioItem();
