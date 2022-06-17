@@ -84,6 +84,7 @@ Follow the [deployment instructions for the Workflow Proxy Server](https://githu
     * Inventory > Items > Item Note Type
         * Create a new type, `Lost Item Workflow Tag`.
         * Create a new type, `Lost Item Workflow Comment`.
+        * Create a new type, `Lost Item Workflow Patron Requesting`.
 
 1. Create a Workflow Proxy Server user for API access by the Lost Items Client.  See [Client User Management](https://github.com/lehigh-university-libraries/purchase-request-workflow-proxy-server#client-user-management).
 
