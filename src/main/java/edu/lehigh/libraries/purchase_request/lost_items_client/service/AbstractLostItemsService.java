@@ -115,6 +115,16 @@ abstract class AbstractLostItemsService {
             }
         }
 
+        String callNumber = item.optString("callNumber");
+        if (callNumber.length() == 0) {
+            JSONObject effectiveCallNumberComponents = item.getJSONObject("effectiveCallNumberComponents");
+            callNumber = effectiveCallNumberComponents.optString("callNumber");
+            if (callNumber.length() == 0) {
+                callNumber = null;
+            }
+        }
+        purchaseRequest.setCallNumber(callNumber);
+
         String id = item.getString("id");
         purchaseRequest.setExistingFolioItemId(id);
 

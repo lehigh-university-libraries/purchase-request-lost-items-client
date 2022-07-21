@@ -26,6 +26,8 @@ public class PurchaseRequest {
 
     private String librarianUsername;
 
+    private String callNumber;
+
     private String format;
 
     private String speed;
