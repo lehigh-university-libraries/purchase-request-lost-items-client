@@ -140,7 +140,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     }
 
     private boolean hasUnsuppressedHoldings(String instanceId) {
-        log.debug("Checking for unsuppressed items on instance: " + instanceId);
+        log.debug("Checking for unsuppressed holdings on instance: " + instanceId);
         JSONArray holdingRecords = getHoldingsForInstanceId(instanceId);
         for (Object holdingObject: holdingRecords) {
             JSONObject holding = (JSONObject)holdingObject;
