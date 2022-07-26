@@ -144,7 +144,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         JSONArray holdingRecords = getHoldingsForInstanceId(instanceId);
         for (Object holdingObject: holdingRecords) {
             JSONObject holding = (JSONObject)holdingObject;
-            if (!holding.getBoolean("discoverySuppress")) {
+            if (!holding.has("discoverySuppress") || !holding.getBoolean("discoverySuppress")) {
                 return true;
             }
         }
