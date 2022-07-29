@@ -33,6 +33,16 @@ Once identified and submitted to the Purchase Request Workflow Proxy Server, the
 
 The client searches FOLIO for lost items on a configurable schedule.  
 
+## Supporting the Decision Process
+
+The Lost Items Client provides information about the existing FOLIO item that may help in the selector's decision-making:
+
+* FOLIO circulation count
+* Legacy circulation count (from a prior ILS/LSP), as configured 
+* Any retention agreement(s) affecting the item, as configured
+
+This is in addition to the [standard enrichments](https://github.com/lehigh-university-libraries/purchase-request-workflow-proxy-server#enrichment) (pricing data, local and consortium holdings, etc.) performed by the Workflow Proxy Server.
+
 ## Updating FOLIO After a Decision
 
 *The underlying expectation is that if a new purchase is approved, library staff will create a new item record to represent it.  Therefore the existing record should be withdrawn regardless of which decision is made.*
