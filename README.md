@@ -126,6 +126,7 @@ These UUIDs can be determined with calls to the FOLIO APIs below.  Make sure to 
 | lost-items-client.folio.item-notes.lost-item-workflow-tag | UUID corresponding to the `Lost Item Workflow Tag` item note type created above.  Determine from the [FOLIO Get /item-note-types API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/item-note-type.html#item_note_types_get). | Y |
 | lost-items-client.folio.item-notes.lost-item-workflow-comment | UUID corresponding to the `Lost Item Workflow Comment` item note type created above.  See prior API call. | Y |
 | lost-items-client.folio.item-notes.lost-item-workflow-patron-requesting | UUID corresponding to the `Lost Item Workflow Patron Requesting` item note type created above.  See prior API call. | Y |
+| lost-items-client.folio.item-notes.legacy-circulation-count | UUID corresponding to an item note field containing the circulation count of this item before it was tracked within FOLIO, such as in a prior ILS. | N |
 
 ### Workflow Proxy Server Section
 

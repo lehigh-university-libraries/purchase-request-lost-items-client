@@ -24,6 +24,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
     private final Integer QUERY_LIMIT;
     private final String[] STATUSES;
     private final boolean FOLIO_PATRON_REQUESTING_ONLY;
+    private final String FOLIO_ITEM_NOTE_LEGACY_CIRCULATION_COUNT;
     
     private Map<String, String> retentionAgreementCodes;
 
@@ -34,6 +35,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         QUERY_LIMIT = config.getFolio().getNewLostItemsLimit();
         STATUSES = config.getFolio().getNewLostItemsStatuses();
         FOLIO_PATRON_REQUESTING_ONLY = config.getFolio().isNewLostItemsPatronRequestingOnly();
+        FOLIO_ITEM_NOTE_LEGACY_CIRCULATION_COUNT = config.getFolio().getItemNotes().getLegacyCirculationCount();
     }
 
     @PostConstruct
@@ -107,7 +109,51 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
 
     @Override
     void parseItemAdditionalFields(PurchaseRequest purchaseRequest, JSONObject item) {
-        // retention agreements
+        parseCirculationCounts(purchaseRequest, item);
+        parseRetentionAgreements(purchaseRequest, item);
+        parseInstanceRecord(purchaseRequest, item);
+    }
+
+    private void parseCirculationCounts(PurchaseRequest purchaseRequest, JSONObject item) {
+        parseFolioCirculationCount(purchaseRequest, item);
+        parseLegacyCirculationCount(purchaseRequest, item);
+    }
+
+    private void parseFolioCirculationCount(PurchaseRequest purchaseRequest, JSONObject item) {
+        try {
+            String itemId = item.getString("id");
+            String url = "/audit-data/circulation/logs";
+            String queryString = "(items==\"*" + itemId + "*\" and action==\"Checked out\")";
+            JSONObject loansResult = folio.executeGet(url, queryString, 0);
+            int count = loansResult.getInt("totalRecords");
+            purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
+                " \n FOLIO Circulation Count: " + count + ".");
+        }
+        catch (Exception e) {
+            log.error("Could not get FOLIO circulation count from item record.", e);
+        }
+    }
+
+    private void parseLegacyCirculationCount(PurchaseRequest purchaseRequest, JSONObject item) {
+        if (FOLIO_ITEM_NOTE_LEGACY_CIRCULATION_COUNT == null) {
+            return;
+        }
+        JSONArray notes = item.getJSONArray("notes");
+        for (Object noteObject: notes) {
+            JSONObject note = (JSONObject)noteObject;
+            String typeId = note.getString("itemNoteTypeId");
+            if (FOLIO_ITEM_NOTE_LEGACY_CIRCULATION_COUNT.equals(typeId)) {
+                String count = note.getString("note");
+                purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
+                " \n Legacy Circulation Count: " + count + ".");
+                return;
+            }
+        }
+        purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
+        " \n No Legacy Circulation Count found.");
+}
+
+    private void parseRetentionAgreements(PurchaseRequest purchaseRequest, JSONObject item) {
         JSONArray statisticalCodes = item.getJSONArray("statisticalCodeIds");
         for (Object statisticalCodeObject : statisticalCodes) {
             String statisticalCode = (String)statisticalCodeObject;
@@ -117,7 +163,9 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
                     " \n Note Retention Agreement: " + name + ".");
             }
         }
+    }
 
+    private void parseInstanceRecord(PurchaseRequest purchaseRequest, JSONObject item) {
         // index title from instance record
         try {
             String holdingsRecordId = item.getString("holdingsRecordId");

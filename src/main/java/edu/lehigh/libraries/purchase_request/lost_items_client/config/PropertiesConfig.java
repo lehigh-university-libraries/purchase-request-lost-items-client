@@ -119,6 +119,12 @@ public class PropertiesConfig {
              */
             private String lostItemWorkflowPatronRequesting;
 
+            /**
+             * FOLIO UUID corresponding to an item note field containing the circulation count
+             * of this item before it was tracked within FOLIO, such as in a prior ILS.
+             */
+            private String legacyCirculationCount = null;
+
         }
 
     }
