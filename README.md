@@ -150,7 +150,7 @@ For connecting to the Purchase Request Workflow Proxy Server via its API.
 | lost-items-client.workflow-server.approved-status | Status field value indicating an approved purchase. | Y |
 | lost-items-client.workflow-server.denied-status | Status field value indicating a denied purchase. | Y |
 
-### Debugging
+### Debugging & Error Reporting
 
 Optional properties.  See other [Spring Boot logging properties](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.logging) as well.
 
@@ -158,3 +158,7 @@ Optional properties.  See other [Spring Boot logging properties](https://docs.sp
 | -- | -- | -- |
 | logging.level.edu.lehigh.libraries.purchase_request | To optionally change the default [SLF4J](https://www.slf4j.org/index.html) logging [level](https://www.slf4j.org/api/org/slf4j/event/Level.html#enum.constant.summary) from INFO. `DEBUG`, `ERROR`, etc. | N |
 | logging.file.name | Optionally [output the log to a file](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.logging.file-output). | N |
+
+#### Advanced Logging Configuration
+
+In addition to these `application.configuration` properties, a standard `logback-spring.xml` file can be used for additional configuration.  For example, the included `logback-spring.xml.example` file can email `ERROR` log events to a specified recipient.

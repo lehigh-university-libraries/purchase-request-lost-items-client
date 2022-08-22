@@ -10,3 +10,6 @@ log/
 
 ### Spring ###
 **/application.properties
+
+### LogBack ###
+logback-spring.xml
