@@ -44,10 +44,15 @@ abstract class AbstractLostItemsService {
             JSONArray items = responseObject.getJSONArray("items");
             log.debug("Found " + items.length() + " results.");
             for (Object itemObject: items) {
-                JSONObject item = (JSONObject)itemObject;
-                PurchaseRequest purchaseRequest = parseItem(item);
-                parseItemAdditionalFields(purchaseRequest, item);
-                purchaseRequests.add(purchaseRequest);
+                try {
+                    JSONObject item = (JSONObject)itemObject;
+                    PurchaseRequest purchaseRequest = parseItem(item);
+                    parseItemAdditionalFields(purchaseRequest, item);
+                    purchaseRequests.add(purchaseRequest);
+                }
+                catch (Exception e) {
+                    log.error("Exception parsing lost item: ", e);
+                }
             }
         }
         catch (Exception e) {
@@ -130,6 +135,7 @@ abstract class AbstractLostItemsService {
 
         purchaseRequest.setExistingFolioItem(item);
 
+        log.debug("Parsed item with title: " + title);
         return purchaseRequest;
     }
 
