@@ -161,4 +161,4 @@ Optional properties.  See other [Spring Boot logging properties](https://docs.sp
 
 #### Advanced Logging Configuration
 
-In addition to these `application.configuration` properties, a standard `logback-spring.xml` file can be used for additional configuration.  For example, the included `logback-spring.xml.example` file can email `ERROR` log events to a specified recipient.
+In addition to these `application.properties` settings, a standard `logback-spring.xml` file can be used for additional configuration.  For example, the included `logback-spring.xml.example` file can email `ERROR` log events to a specified recipient.
