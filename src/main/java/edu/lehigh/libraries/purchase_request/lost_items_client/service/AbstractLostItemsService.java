@@ -102,8 +102,10 @@ abstract class AbstractLostItemsService {
         purchaseRequest.setTitle(title);
 
         JSONArray contributorNames = item.getJSONArray("contributorNames");
-        String contributor = contributorNames.getJSONObject(0).getString("name");
-        purchaseRequest.setContributor(contributor);
+        if (contributorNames.length() > 0) {
+            String contributor = contributorNames.getJSONObject(0).getString("name");
+            purchaseRequest.setContributor(contributor);
+        }
 
         String barcode = item.getString("barcode");
         purchaseRequest.setRequesterComments("Lost Item.  Barcode: " + barcode);
