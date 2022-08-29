@@ -71,9 +71,20 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
             log.info("Sending " + purchaseRequests.size() + " new purchase requests.");
             for (PurchaseRequest purchaseRequest: purchaseRequests) {
                 log.info("Requesting replacement purchase: " + purchaseRequest);
-                PurchaseRequest savedRequest = workflow.submitRequest(purchaseRequest);
+                PurchaseRequest savedRequest;
+                try {
+                    savedRequest = workflow.submitRequest(purchaseRequest);
+                }
+                catch (Exception e) {
+                    log.error("Exception requesting replacement purchase: ", e);
+                    continue;
+                }
+
                 if (savedRequest != null) {
                     log.debug("Successfully submitted purchase request.");
+
+                    // Do not catch exceptions here.  If there may be a problem on the FOLIO side,
+                    // I do not want to continue creating PRs above until it is resolved.
                     markItemSubmittedToWorkflow(savedRequest);
                 }
             }
