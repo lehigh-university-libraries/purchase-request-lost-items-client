@@ -40,8 +40,7 @@ abstract class AbstractLostItemsService {
         String url = "/inventory/items";
         List<PurchaseRequest> purchaseRequests = new ArrayList<PurchaseRequest>();
         try {
-            JSONObject responseObject = folio.executeGet(url, queryString, limit);
-            JSONArray items = responseObject.getJSONArray("items");
+            JSONArray items = folio.executeGetForArray(url, queryString, limit, "items");
             log.debug("Found " + items.length() + " results.");
             for (Object itemObject: items) {
                 try {

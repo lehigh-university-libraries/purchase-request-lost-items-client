@@ -21,6 +21,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,11 @@ public class FolioConnection {
 
     private static final String TENANT_HEADER = "x-okapi-tenant";
     private static final String TOKEN_HEADER = "x-okapi-token";
+
+    // Limit to use, with offsets, for queries that would otherwise fail.
+    // Queries that cause dependent joins can fail if the dependent query
+    // string is too large for the URL limit.
+    private static final Integer LARGE_QUERY_LIMIT = Integer.valueOf(50);
 
     private final PropertiesConfig config;
 
@@ -87,11 +93,43 @@ public class FolioConnection {
         }
     }
 
+    public JSONArray executeGetForArray(String url, String queryString, Integer limit, String arrayProperty) 
+        throws Exception {
+
+        if (limit == null) {
+            JSONObject responseObject = executeGet(url, queryString, limit);
+            return responseObject.getJSONArray(arrayProperty);
+        }
+        else {
+            JSONArray results = new JSONArray();
+            int queryLimit = Integer.min(limit.intValue(), LARGE_QUERY_LIMIT);
+            int offset = 0;
+            while (offset < limit.intValue()) {
+                log.debug("Split query: request batch of " + queryLimit + " results.");
+                JSONObject responseObject = executeGet(url, queryString, queryLimit, Integer.valueOf(offset));
+                JSONArray queryArray = responseObject.getJSONArray(arrayProperty);
+                if (queryArray.length() == 0) {
+                    break;
+                }
+                results.putAll(queryArray);
+                offset += queryLimit;
+            }
+            return results;
+        }
+    }
+
     public JSONObject executeGet(String url, String queryString) throws Exception {
         return executeGet(url, queryString, null);
     }
 
     public JSONObject executeGet(String url, String queryString, Integer limit) throws Exception {
+        return executeGet(url, queryString, limit, null);
+    }
+
+
+    public JSONObject executeGet(String url, String queryString, Integer limit, Integer offset)
+        throws Exception {
+        
         RequestBuilder builder = RequestBuilder.get()
             .setUri(config.getFolio().getOkapiBaseUrl() + url)
             .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
@@ -101,6 +139,9 @@ public class FolioConnection {
         }
         if (limit != null) {
             builder.addParameter("limit", limit.toString());
+        }    
+        if (offset != null) {
+            builder.addParameter("offset", offset.toString());
         }    
         HttpUriRequest getRequest = builder.build();
 
