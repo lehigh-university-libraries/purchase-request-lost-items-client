@@ -1,8 +1,8 @@
 # Purchase Request Lost Items Client
 
-The Lost Items client helps a library determine whether to replace lost or missing items.  The client:
+The Lost Items client helps a library determine whether to replace lost, missing and damaged items.  The client:
 
-* Monitors the FOLIO LSP for items newly marked lost.
+* Monitors the FOLIO LSP for items newly [marked as lost, missing or damaged](#identifying-lost-missing-or-damaged-items).
 * Submits purchase requests for newly identified items to the [Purchase Request Workflow Proxy Server](https://github.com/lehigh-university-libraries/purchase-request-workflow-proxy-server) for consideration by librarian selectors.
     * The Workflow Proxy Server centralizes purchase requests from different sources, enriches them with information to help selector decision-making, and routes them to external systems for post-decision processing.
 * Updates the FOLIO inventory records once a decision is made.
@@ -18,11 +18,12 @@ Client-->Server
 
 ```
 
-## Identifying Lost Items
+## Identifying Lost, Missing or Damaged Items
 
 The Lost Items Client identifies for purchase consideration items that meet **all** of the following criteria:
 
 * The Item Status matches any of those in a configured list of lost/missing status values, such as "Declared lost".
+  * **Or** the item has a custom Statistical Code set indicating that it is damaged beyond repair[^1].
 * Suppress Discovery is false on the item record.
 * The item has not already been identified (it does not have an `In Lost Item Workflow` statistical code).
 
@@ -32,6 +33,8 @@ Once identified and submitted to the Purchase Request Workflow Proxy Server, the
 * Adding an item note of type `Lost Item Tag` whose value is the purchase request ID from the Workflow Proxy Server.
 
 The client searches FOLIO for lost items on a configurable schedule.  
+
+[^1]: Note that the Lost Items Client does *not* look for the "Item damaged status" listed as part of the item's condition, as some damage is repairable.
 
 ## Supporting the Decision Process
 
@@ -132,6 +135,7 @@ These UUIDs can be determined with calls to the FOLIO APIs below.  Make sure to 
 | -- | -- | -- |
 | lost-items-client.folio.instance-status-withdrawn  | UUID corresponding to the FOLIO instance status that indicates a record's holdings should be set or withdrawn in OCLC. Determine from the [FOLIO Get /instance-statuses API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/instance-status.html#instance_statuses_get).  If omitted, the client will not change the instance status. | N |
 | lost-items-client.folio.statistical-code-in-workflow | UUID corresponding to the `lost-workflow` statistical code created above.  Determine from the [FOLIO Get /statistical-codes API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/statistical-code.html#statistical_codes_get). | Y |
+| lost-items-client.folio.statistical-code-damaged-beyond-repair | UUID corresponding to a statistical code indicating that the item should be replaced due to damage.  If present, items with this statistical code will be submitted as purchase requests in addition to lost items, and a `requesterComment` will be set indicating that damage was the reason for the request.
 | lost-items-client.folio.statistical-code-type-retention-agreement | UUID for the statistical code type representing retention agreement statistical codes.  Determine from the [FOLIO Get /statistical-code-types API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/statistical-code-type.html#statistical_code_types_get).  If present, a `requesterComment` will be set if the item being requested is part of any retention agreements. | N |
 | lost-items-client.folio.item-notes.lost-item-workflow-tag | UUID corresponding to the `Lost Item Workflow Tag` item note type created above.  Determine from the [FOLIO Get /item-note-types API](https://s3.amazonaws.com/foliodocs/api/mod-inventory-storage/p/item-note-type.html#item_note_types_get). | Y |
 | lost-items-client.folio.item-notes.lost-item-workflow-comment | UUID corresponding to the `Lost Item Workflow Comment` item note type created above.  See prior API call. | Y |

@@ -95,6 +95,15 @@ public class PropertiesConfig {
         private String statisticalCodeInWorkflow;
 
         /**
+         * FOLIO UUID for the statistical code for items damaged beyond repair.
+         * 
+         * If present, items with this statistical code will be submitted as purchase requests 
+         * in addition to lost items, and a requesterComment will be set indicating that damage 
+         * was the reason for the request.
+         */
+        private String statisticalCodeDamagedBeyondRepair = null;
+
+        /**
          * FOLIO UUID for the statistical code type representing retention agreements.
          */
         private String statisticalCodeTypeRetentionAgreement = null;

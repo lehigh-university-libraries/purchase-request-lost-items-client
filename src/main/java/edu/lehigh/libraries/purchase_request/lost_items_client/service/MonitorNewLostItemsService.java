@@ -25,6 +25,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
     private final String[] STATUSES;
     private final boolean FOLIO_PATRON_REQUESTING_ONLY;
     private final String FOLIO_ITEM_NOTE_LEGACY_CIRCULATION_COUNT;
+    private final String DAMAGED_BEYOND_REPAIR_STATISTICAL_CODE;
     
     private Map<String, String> retentionAgreementCodes;
 
@@ -36,6 +37,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         STATUSES = config.getFolio().getNewLostItemsStatuses();
         FOLIO_PATRON_REQUESTING_ONLY = config.getFolio().isNewLostItemsPatronRequestingOnly();
         FOLIO_ITEM_NOTE_LEGACY_CIRCULATION_COUNT = config.getFolio().getItemNotes().getLegacyCirculationCount();
+        DAMAGED_BEYOND_REPAIR_STATISTICAL_CODE = config.getFolio().getStatisticalCodeDamagedBeyondRepair();
     }
 
     @PostConstruct
@@ -93,7 +95,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
 
     private List<PurchaseRequest> loadNewLostItems() {
         String queryString = "("
-            + buildStatusPhrase()
+            + buildLostOrDamagedPhrase()
             + buildPatronRequestingPhrase()
             + " not " + buildWorkflowPhrase()
             + ")"
@@ -102,11 +104,25 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         return loadFolioItemsAsPurchaseRequests(queryString, QUERY_LIMIT);
     }
 
-    private String buildStatusPhrase() {
+    private String buildLostOrDamagedPhrase() {
+        return "("
+         + buildLostPhrase()
+         + buildDamagedPhrase()
+         + ")";
+    }
+
+    private String buildLostPhrase() {
         String phrase = Stream.of(STATUSES)
             .map(status -> "status=\"" + status + "\"")
             .collect(Collectors.joining(" or "));
         return "(" + phrase + ")";
+    }
+
+    private String buildDamagedPhrase() {
+        if (DAMAGED_BEYOND_REPAIR_STATISTICAL_CODE != null) {
+            return " OR (statisticalCodeIds=\"" + DAMAGED_BEYOND_REPAIR_STATISTICAL_CODE + "\")";
+        }
+        return "";
     }
 
     private String buildPatronRequestingPhrase() {
@@ -122,6 +138,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
     void parseItemAdditionalFields(PurchaseRequest purchaseRequest, JSONObject item) {
         parseCirculationCounts(purchaseRequest, item);
         parseRetentionAgreements(purchaseRequest, item);
+        parseDamagedBeyondRepair(purchaseRequest, item);
         parseInstanceRecord(purchaseRequest, item);
     }
 
@@ -162,7 +179,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         }
         purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
         " \n No Legacy Circulation Count found.");
-}
+    }
 
     private void parseRetentionAgreements(PurchaseRequest purchaseRequest, JSONObject item) {
         JSONArray statisticalCodes = item.getJSONArray("statisticalCodeIds");
@@ -172,6 +189,21 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
                 String name = retentionAgreementCodes.get(statisticalCode);
                 purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
                     " \n Note Retention Agreement: " + name + ".");
+            }
+        }
+    }
+
+    private void parseDamagedBeyondRepair(PurchaseRequest purchaseRequest, JSONObject item) {
+        if (DAMAGED_BEYOND_REPAIR_STATISTICAL_CODE == null) {
+            return;
+        }
+
+        JSONArray statisticalCodes = item.getJSONArray("statisticalCodeIds");
+        for (Object statisticalCodeObject : statisticalCodes) {
+            String statisticalCode = (String)statisticalCodeObject;
+            if (DAMAGED_BEYOND_REPAIR_STATISTICAL_CODE.equals(statisticalCode)) {
+                purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
+                    " \n Note: Damaged beyond repair");
             }
         }
     }

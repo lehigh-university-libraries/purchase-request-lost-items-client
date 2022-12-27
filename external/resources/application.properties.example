@@ -23,6 +23,7 @@ lost-items-client.folio.new-lost-items-limit=10
 
 lost-items-client.folio.instance-status-withdrawn=12345678-1234-1234-1234-1234567890ab
 lost-items-client.folio.statistical-code-in-workflow=12345678-1234-1234-1234-1234567890ab
+lost-items-client.folio.statistical-code-damaged-beyond-repair=12345678-1234-1234-1234-1234567890ab
 lost-items-client.folio.statistical-code-type-retention-agreement=12345678-1234-1234-1234-1234567890ab
 lost-items-client.folio.item-notes.lost-item-workflow-tag=12345678-1234-1234-1234-1234567890ab
 lost-items-client.folio.item-notes.lost-item-workflow-comment=12345678-1234-1234-1234-1234567890ab
