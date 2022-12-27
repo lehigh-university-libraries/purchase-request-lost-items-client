@@ -41,6 +41,10 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         List<PurchaseRequest> purchaseRequests = checkFolioForItemsInWorkflow();
         for (PurchaseRequest purchaseRequest : purchaseRequests) {
             purchaseRequest = updateFromWorkflow(purchaseRequest);
+            if (purchaseRequest == null) {
+                log.debug("PR not found in WorkflowService; skipping.");
+                continue;
+            }
             if (isApproved(purchaseRequest)) {
                 handleApproval(purchaseRequest);
             }
@@ -61,6 +65,9 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     private PurchaseRequest updateFromWorkflow(PurchaseRequest purchaseRequest) {
         log.debug("Updating from workflow: " + purchaseRequest.getKey());
         PurchaseRequest savedRequest = workflow.getPurchaseRequest(purchaseRequest.getKey());
+        if (savedRequest == null) {
+            return null;
+        }
         savedRequest.setExistingFolioItem(purchaseRequest.getExistingFolioItem());
         savedRequest.setExistingFolioItemId(purchaseRequest.getExistingFolioItemId());
         return savedRequest;

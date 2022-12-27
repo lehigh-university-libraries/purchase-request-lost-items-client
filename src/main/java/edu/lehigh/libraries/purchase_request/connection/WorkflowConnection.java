@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import edu.lehigh.libraries.purchase_request.lost_items_client.config.PropertiesConfig;
@@ -64,11 +65,18 @@ public class WorkflowConnection {
             log.error("Bad URL syntax: ", e);
             return null;
         }
-        ResponseEntity<PurchaseRequest> responseEntity = restTemplate.exchange(
-            uri,
-            HttpMethod.GET,
-            entity,
-            PurchaseRequest.class);
+        ResponseEntity<PurchaseRequest> responseEntity;
+        try {
+             responseEntity = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                entity,
+                PurchaseRequest.class);
+        }
+        catch (HttpClientErrorException.NotFound e) {
+            log.warn("PR not found: " + key);
+            return null;
+        }
         PurchaseRequest result = responseEntity.getBody();
         log.debug("Loaded PR: " + result);
         return result;
