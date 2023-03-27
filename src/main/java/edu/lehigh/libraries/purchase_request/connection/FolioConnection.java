@@ -147,6 +147,10 @@ public class FolioConnection {
 
         CloseableHttpResponse response;
         response = client.execute(getRequest);
+        if (response.getStatusLine().getStatusCode() > 399) {
+            throw new Exception("Cannot execute request: " + response);
+        }
+
         HttpEntity entity = response.getEntity();
         String responseString = EntityUtils.toString(entity);
         log.debug("Got response with code " + response.getStatusLine() + " and entity " + response.getEntity());
