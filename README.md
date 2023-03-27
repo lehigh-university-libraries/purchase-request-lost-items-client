@@ -115,11 +115,17 @@ Copy/rename `application.properties.example` to `application.properties` and con
 
 ### FOLIO Section
 
-For connecting to the FOLIO API.
+For connecting to the FOLIO API.  
+
+Note: The specified FOLIO user account should have the following permissions:
+- Circulation log: View
+- Inventory: View, create, edit holdings
+- Inventory: View, create, edit instances
+- Inventory: View, create, edit items
 
 | Property | Description | Required |
 | -- | -- | -- |
-| lost-items-client.folio.username | Username for the FOLIO API. | Y |
+| lost-items-client.folio.username | Username for the FOLIO API.  See permissions required above. | Y |
 | lost-items-client.folio.password | Password for the FOLIO API. | Y |
 | lost-items-client.folio.tenantId | Tenant ID for the FOLIO server environment. | Y |
 | lost-items-client.folio.okapiBaseUrl | Base URL for FOLIO OKAPI API calls. | Y |
