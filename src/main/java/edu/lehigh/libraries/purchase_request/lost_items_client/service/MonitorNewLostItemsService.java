@@ -217,6 +217,8 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
             String instanceRecordId= holdingsRecord.getString("instanceId");
             url = "/inventory/instances/" + instanceRecordId;
             JSONObject instanceRecord = folio.executeGet(url, null);
+            purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
+                " \n Instance HRID: " + instanceRecord.getString("hrid"));
             if (instanceRecord.has("indexTitle")) {
                 String indexTitle = instanceRecord.getString("indexTitle");
                 purchaseRequest.setTitle(indexTitle);
