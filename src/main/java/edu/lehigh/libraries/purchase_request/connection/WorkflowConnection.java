@@ -10,6 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import edu.lehigh.libraries.purchase_request.lost_items_client.config.PropertiesConfig;
@@ -75,6 +76,10 @@ public class WorkflowConnection {
         }
         catch (HttpClientErrorException.NotFound e) {
             log.warn("PR not found: " + key);
+            return null;
+        }
+        catch (HttpServerErrorException e) {
+            log.warn("Server error exception connecting to workflow server", e);
             return null;
         }
         PurchaseRequest result = responseEntity.getBody();
