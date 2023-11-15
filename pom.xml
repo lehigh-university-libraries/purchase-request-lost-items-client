@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20211205</version>
+			<version>20231013</version>
 		</dependency>
 
 		<!-- javax.main and javax.activation used for logging SMTPAppender in logback-spring.xml -->
