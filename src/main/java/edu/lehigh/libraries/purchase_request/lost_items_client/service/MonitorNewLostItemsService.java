@@ -99,7 +99,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
             + buildPatronRequestingPhrase()
             + " not " + buildWorkflowPhrase()
             + ")"
-            + " and discoverySuppress=false" 
+            + " not discoverySuppress=true" 
             + " sortby hrid";
         return loadFolioItemsAsPurchaseRequests(queryString, QUERY_LIMIT);
     }
