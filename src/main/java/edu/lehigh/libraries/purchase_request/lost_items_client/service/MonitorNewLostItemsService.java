@@ -26,6 +26,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
     private final boolean FOLIO_PATRON_REQUESTING_ONLY;
     private final String FOLIO_ITEM_NOTE_LEGACY_CIRCULATION_COUNT;
     private final String DAMAGED_BEYOND_REPAIR_STATISTICAL_CODE;
+    private final String FOLIO_INSTANCE_STATUS_WITHDRAWN;
     
     private Map<String, String> retentionAgreementCodes;
 
@@ -38,6 +39,7 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         FOLIO_PATRON_REQUESTING_ONLY = config.getFolio().isNewLostItemsPatronRequestingOnly();
         FOLIO_ITEM_NOTE_LEGACY_CIRCULATION_COUNT = config.getFolio().getItemNotes().getLegacyCirculationCount();
         DAMAGED_BEYOND_REPAIR_STATISTICAL_CODE = config.getFolio().getStatisticalCodeDamagedBeyondRepair();
+        FOLIO_INSTANCE_STATUS_WITHDRAWN = config.getFolio().getInstanceStatusWithdrawn();
     }
 
     @PostConstruct
@@ -88,9 +90,19 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
                     // Do not catch exceptions here.  If there may be a problem on the FOLIO side,
                     // I do not want to continue creating PRs above until it is resolved.
                     markItemSubmittedToWorkflow(savedRequest);
+                    PurchaseRequest updatedRequest = loadItem(savedRequest.getExistingFolioItemId());
+                    JSONObject item = updatedRequest.getExistingFolioItem();
+                    withdrawItem(item, updatedRequest);
+                    maybeShadowHoldingAndInstance(item);
                 }
             }
         }
+    }
+
+    private PurchaseRequest loadItem(String id) {
+        String queryString = "id=\"" + id + "\"";
+        List<PurchaseRequest> purchaseRequests = loadFolioItemsAsPurchaseRequests(queryString, QUERY_LIMIT);
+        return purchaseRequests.get(0);
     }
 
     private List<PurchaseRequest> loadNewLostItems() {
@@ -248,6 +260,82 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         // Update it in FOLIO
         log.debug("Calling FOLIO to mark item as submitted to workflow.");
         updateItemInFolio(purchaseRequest, item);
+    }
+
+    private void withdrawItem(JSONObject item, PurchaseRequest purchaseRequest) {
+        setItemStatus(item, "Withdrawn");
+        setSuppressDiscovery(item, true);
+        addCirculationNote(item);
+        updateItemInFolio(purchaseRequest, item);
+    }
+
+    private void setItemStatus(JSONObject item, String statusName) {
+        JSONObject status = item.getJSONObject("status");
+        status.put("name", statusName);
+    }
+
+    private void setSuppressDiscovery(JSONObject record, boolean value) {
+        record.put("discoverySuppress", value);
+    }
+
+    private void addCirculationNote(JSONObject item) {
+        JSONArray circulationNotes = item.getJSONArray("circulationNotes");
+        JSONObject note = new JSONObject();
+        note.put("note", "Route to cataloging. Item was withdrawn.");
+        note.put("noteType", "Check in");
+        note.put("staffOnly", true);
+        circulationNotes.put(note);
+    }
+
+    private void maybeShadowHoldingAndInstance(JSONObject item) {
+        // Shadow the holdings record if appropriate
+        String holdingRecordId = item.getString("holdingsRecordId");
+        if (!hasUnsuppressedItems(holdingRecordId)) {
+            log.debug("Shadow the holdings record.");
+            JSONObject holdingRecord = getHoldingRecord(holdingRecordId);
+            setSuppressDiscovery(holdingRecord, true);
+            updateHoldingInFolio(holdingRecord);
+
+            // Shadow the instance record if appropriate
+            String instanceId = holdingRecord.getString("instanceId");
+            if (!hasUnsuppressedHoldings(instanceId)) {
+                log.debug("Shadow the instance record.");
+                JSONObject instance = getInstance(instanceId);
+                setSuppressDiscovery(instance, true);
+                if (FOLIO_INSTANCE_STATUS_WITHDRAWN != null) {
+                    setInstanceStatusWithdrawn(instance);
+                }
+                updateInstanceInFolio(instance);
+            }
+        }
+    }
+
+    private boolean hasUnsuppressedItems(String holdingsRecordId) {
+        log.debug("Checking for unsuppressed items on holdings: " + holdingsRecordId);
+        JSONArray itemRecords = getItemsForHoldingId(holdingsRecordId);
+        for (Object itemObject: itemRecords) {
+            JSONObject item = (JSONObject)itemObject;
+            if (!item.optBoolean("discoverySuppress")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasUnsuppressedHoldings(String instanceId) {
+        log.debug("Checking for unsuppressed holdings on instance: " + instanceId);
+        JSONArray holdingRecords = getHoldingsForInstanceId(instanceId);
+        for (Object holdingObject: holdingRecords) {
+            JSONObject holding = (JSONObject)holdingObject;
+            if (!holding.has("discoverySuppress") || !holding.getBoolean("discoverySuppress")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void setInstanceStatusWithdrawn(JSONObject instance) {
+        instance.put("statusId", FOLIO_INSTANCE_STATUS_WITHDRAWN);
     }
 
 }

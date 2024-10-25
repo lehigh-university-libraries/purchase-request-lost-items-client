@@ -20,7 +20,6 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     private final String WORKFLOW_APPROVED_STATUS;
     private final String WORKFLOW_DENIED_STATUS;
     private final String FOLIO_ITEM_NOTE_WORKFLOW_COMMENT;
-    private final String FOLIO_INSTANCE_STATUS_WITHDRAWN;
 
     public MonitorWorkflowService(PropertiesConfig config) throws Exception {
         super(config);
@@ -29,7 +28,6 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         this.WORKFLOW_APPROVED_STATUS = config.getWorkflowServer().getApprovedStatus();
         this.WORKFLOW_DENIED_STATUS = config.getWorkflowServer().getDeniedStatus();
         this.FOLIO_ITEM_NOTE_WORKFLOW_COMMENT = config.getFolio().getItemNotes().getLostItemWorkflowComment();
-        this.FOLIO_INSTANCE_STATUS_WITHDRAWN = config.getFolio().getInstanceStatusWithdrawn();
 
         log.info("Started MonitorWorkflowService.");
     }
@@ -40,19 +38,25 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
 
         List<PurchaseRequest> purchaseRequests = checkFolioForItemsInWorkflow();
         for (PurchaseRequest purchaseRequest : purchaseRequests) {
-            purchaseRequest = updateFromWorkflow(purchaseRequest);
-            if (purchaseRequest == null) {
-                log.debug("PR not found in WorkflowService; skipping.");
-                continue;
+            try {
+                log.debug("Checking for decision on " + purchaseRequest.getKey());
+                purchaseRequest = updateFromWorkflow(purchaseRequest);
+                if (purchaseRequest == null) {
+                    log.debug("PR not found in WorkflowService; skipping.");
+                    continue;
+                }
+                if (isApproved(purchaseRequest)) {
+                    handleApproval(purchaseRequest);
+                }
+                else if (isDenied(purchaseRequest)) {
+                    handleDenial(purchaseRequest);
+                }
+                else {
+                    log.debug("No decision yet on request " + purchaseRequest.getKey());
+                }
             }
-            if (isApproved(purchaseRequest)) {
-                handleApproval(purchaseRequest);
-            }
-            else if (isDenied(purchaseRequest)) {
-                handleDenial(purchaseRequest);
-            }
-            else {
-                log.debug("No decision yet on request " + purchaseRequest.getKey());
+            catch (Exception e) {
+                log.warn("Exception handling PR " + purchaseRequest.getKey() + ".  Continuing to others.");
             }
         }
     }
@@ -84,21 +88,17 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     private void handleApproval(PurchaseRequest purchaseRequest) {
         log.info("Purchase approved: " + purchaseRequest);
         JSONObject item = purchaseRequest.getExistingFolioItem();
-        withdrawItem(item, purchaseRequest, true);
-        maybeShadowHoldingAndInstance(item);
+        markItemDecision(item, purchaseRequest, true);
     }
 
     private void handleDenial(PurchaseRequest purchaseRequest) {
         log.info("Purchase denied: " + purchaseRequest);
 
         JSONObject item = purchaseRequest.getExistingFolioItem();
-        withdrawItem(item, purchaseRequest, false);
-        maybeShadowHoldingAndInstance(item);
+        markItemDecision(item, purchaseRequest, false);
     }
 
-    private void withdrawItem(JSONObject item, PurchaseRequest purchaseRequest, boolean purchaseApproved) {
-        setItemStatus(item, "Withdrawn");
-        setSuppressDiscovery(item, true);
+    private void markItemDecision(JSONObject item, PurchaseRequest purchaseRequest, boolean purchaseApproved) {
         removeStatisticalCode(item);
         removeStatusNote(item);
         if (purchaseApproved) {
@@ -107,60 +107,7 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         else {
             notePurchaseDenied(item, purchaseRequest);
         }
-        addCirculationNote(item);
         updateItemInFolio(purchaseRequest, item);
-    }
-
-    private void maybeShadowHoldingAndInstance(JSONObject item) {
-        // Shadow the holdings record if appropriate
-        String holdingRecordId = item.getString("holdingsRecordId");
-        if (!hasUnsuppressedItems(holdingRecordId)) {
-            log.debug("Shadow the holdings record.");
-            JSONObject holdingRecord = getHoldingRecord(holdingRecordId);
-            setSuppressDiscovery(holdingRecord, true);
-            updateHoldingInFolio(holdingRecord);
-
-            // Shadow the instance record if appropriate
-            String instanceId = holdingRecord.getString("instanceId");
-            if (!hasUnsuppressedHoldings(instanceId)) {
-                log.debug("Shadow the instance record.");
-                JSONObject instance = getInstance(instanceId);
-                setSuppressDiscovery(instance, true);
-                if (FOLIO_INSTANCE_STATUS_WITHDRAWN != null) {
-                    setInstanceStatusWithdrawn(instance);
-                }
-                updateInstanceInFolio(instance);
-            }
-        }
-    }
-
-    private boolean hasUnsuppressedItems(String holdingsRecordId) {
-        log.debug("Checking for unsuppressed items on holdings: " + holdingsRecordId);
-        JSONArray itemRecords = getItemsForHoldingId(holdingsRecordId);
-        for (Object itemObject: itemRecords) {
-            JSONObject item = (JSONObject)itemObject;
-            if (!item.getBoolean("discoverySuppress")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasUnsuppressedHoldings(String instanceId) {
-        log.debug("Checking for unsuppressed holdings on instance: " + instanceId);
-        JSONArray holdingRecords = getHoldingsForInstanceId(instanceId);
-        for (Object holdingObject: holdingRecords) {
-            JSONObject holding = (JSONObject)holdingObject;
-            if (!holding.has("discoverySuppress") || !holding.getBoolean("discoverySuppress")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void setItemStatus(JSONObject item, String statusName) {
-        JSONObject status = item.getJSONObject("status");
-        status.put("name", statusName);
     }
 
     private void removeStatisticalCode(JSONObject item) {
@@ -204,23 +151,6 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
         note.put("note", noteText);
         note.put("staffOnly", true);
         notes.put(note);        
-    }
-
-    private void addCirculationNote(JSONObject item) {
-        JSONArray circulationNotes = item.getJSONArray("circulationNotes");
-        JSONObject note = new JSONObject();
-        note.put("note", "Route to cataloging. Item was withdrawn.");
-        note.put("noteType", "Check in");
-        note.put("staffOnly", true);
-        circulationNotes.put(note);
-    }
-
-    private void setSuppressDiscovery(JSONObject record, boolean value) {
-        record.put("discoverySuppress", value);
-    }
-
-    private void setInstanceStatusWithdrawn(JSONObject instance) {
-        instance.put("statusId", FOLIO_INSTANCE_STATUS_WITHDRAWN);
     }
 
 }
