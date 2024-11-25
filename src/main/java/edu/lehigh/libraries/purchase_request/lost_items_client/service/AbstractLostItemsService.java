@@ -106,7 +106,7 @@ abstract class AbstractLostItemsService {
             purchaseRequest.setContributor(contributor);
         }
 
-        String barcode = item.getString("barcode");
+        String barcode = item.optString("barcode");
         purchaseRequest.setRequesterComments("Lost Item.  Barcode: " + barcode);
 
         JSONArray notes = item.getJSONArray("notes");
