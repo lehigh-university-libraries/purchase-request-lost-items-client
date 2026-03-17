@@ -37,8 +37,7 @@ public class LostItemsApplication extends SpringBootServletInitializer {
 		log.info("Starting the Lost Items Application");
 		ApplicationContext context = SpringApplication.run(LostItemsApplication.class, args);
 		reportBuild(context);
-		SpringApplication.run(LostItemsApplication.class, args);
-        log.info("Lost Items Application started");
+		log.info("Lost Items Application started");
 	}
 
 }
