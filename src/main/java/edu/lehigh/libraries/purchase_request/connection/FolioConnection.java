@@ -2,25 +2,19 @@ package edu.lehigh.libraries.purchase_request.connection;
 
 import edu.lehigh.libraries.purchase_request.lost_items_client.config.PropertiesConfig;
 
+import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpVersion;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.net.URIBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
@@ -56,12 +50,7 @@ public class FolioConnection {
     }
 
     private void initConnection() {
-        CredentialsProvider provider = new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY, 
-            new UsernamePasswordCredentials(config.getFolio().getUsername(), config.getFolio().getPassword()));
-        client = HttpClientBuilder.create()
-            .setDefaultCredentialsProvider(provider)
-            .build();                
+        client = HttpClientBuilder.create().build();
     }
 
     private void initToken() throws Exception {
@@ -73,27 +62,27 @@ public class FolioConnection {
         postData.put("password", config.getFolio().getPassword());
         postData.put("tenant", config.getFolio().getTenantId());
 
-        HttpUriRequest post = RequestBuilder.post()
-            .setUri(uri)
-            .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())
-            .setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType()).setVersion(HttpVersion.HTTP_1_1)
-            .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
-            .setEntity(new StringEntity(postData.toString()))
-            .build();
-        CloseableHttpResponse response = client.execute(post);
-        HttpEntity entity = response.getEntity();
-        String responseString = EntityUtils.toString(entity);
-        int responseCode = response.getStatusLine().getStatusCode();
-        token = response.getFirstHeader(TOKEN_HEADER).getValue();
+        HttpPost post = new HttpPost(uri);
+        post.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+        post.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+        post.setHeader(TENANT_HEADER, config.getFolio().getTenantId());
+        post.setEntity(new StringEntity(postData.toString(), ContentType.APPLICATION_JSON));
 
-        log.debug("got auth response from folio with response code: " + responseCode);
+        client.execute(post, response -> {
+            String responseString = EntityUtils.toString(response.getEntity());
+            int responseCode = response.getCode();
+            token = response.getFirstHeader(TOKEN_HEADER).getValue();
 
-        if (responseCode > 399) {
-            throw new Exception(responseString);
-        }
+            log.debug("got auth response from folio with response code: " + responseCode);
+
+            if (responseCode > 399) {
+                throw new IOException(responseString);
+            }
+            return null;
+        });
     }
 
-    public JSONArray executeGetForArray(String url, String queryString, Integer limit, String arrayProperty) 
+    public JSONArray executeGetForArray(String url, String queryString, Integer limit, String arrayProperty)
         throws Exception {
 
         if (limit == null) {
@@ -129,55 +118,49 @@ public class FolioConnection {
 
     public JSONObject executeGet(String url, String queryString, Integer limit, Integer offset)
         throws Exception {
-        
-        RequestBuilder builder = RequestBuilder.get()
-            .setUri(config.getFolio().getOkapiBaseUrl() + url)
-            .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
-            .setHeader(TOKEN_HEADER, token);
+
+        URIBuilder builder = new URIBuilder(config.getFolio().getOkapiBaseUrl() + url);
         if (queryString != null) {
             builder.addParameter("query", queryString);
         }
         if (limit != null) {
             builder.addParameter("limit", limit.toString());
-        }    
+        }
         if (offset != null) {
             builder.addParameter("offset", offset.toString());
-        }    
-        HttpUriRequest getRequest = builder.build();
-
-        CloseableHttpResponse response;
-        response = client.execute(getRequest);
-        if (response.getStatusLine().getStatusCode() > 399) {
-            throw new Exception("Cannot execute request: " + response);
         }
 
-        HttpEntity entity = response.getEntity();
-        String responseString = EntityUtils.toString(entity);
-        log.debug("Got response with code " + response.getStatusLine() + " and entity " + response.getEntity());
+        HttpGet getRequest = new HttpGet(builder.build());
+        getRequest.setHeader(TENANT_HEADER, config.getFolio().getTenantId());
+        getRequest.setHeader(TOKEN_HEADER, token);
 
-        JSONObject jsonObject = new JSONObject(responseString);
-        return jsonObject;
+        return client.execute(getRequest, response -> {
+            if (response.getCode() > 399) {
+                throw new IOException("Cannot execute request: " + response);
+            }
+
+            String responseString = EntityUtils.toString(response.getEntity());
+            log.debug("Got response with code " + response.getCode() + " and entity " + response.getEntity());
+
+            return new JSONObject(responseString);
+        });
     }
 
     public boolean executePut(String url, JSONObject data) throws Exception {
-        HttpUriRequest putRequest = RequestBuilder.put()
-            .setUri(config.getFolio().getOkapiBaseUrl() + url)
-            .setHeader(TENANT_HEADER, config.getFolio().getTenantId())
-            .setHeader(TOKEN_HEADER, token)
-            .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
-            .setEntity(new StringEntity(data.toString(), StandardCharsets.UTF_8.name()))
-            .build();
+        HttpPut putRequest = new HttpPut(config.getFolio().getOkapiBaseUrl() + url);
+        putRequest.setHeader(TENANT_HEADER, config.getFolio().getTenantId());
+        putRequest.setHeader(TOKEN_HEADER, token);
+        putRequest.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+        putRequest.setEntity(new StringEntity(data.toString(), ContentType.APPLICATION_JSON));
 
-        CloseableHttpResponse response;
-        response = client.execute(putRequest);
-        if (response.getStatusLine().getStatusCode() == 204) {
-            log.debug("Got successful response to PUT.");
-            return true;
-        }
-        else {
-            log.warn("Got response with code " + response.getStatusLine());
+        return client.execute(putRequest, response -> {
+            if (response.getCode() == 204) {
+                log.debug("Got successful response to PUT.");
+                return true;
+            }
+            log.warn("Got response with code " + response.getCode());
             return false;
-        }
+        });
     }
 
 }
