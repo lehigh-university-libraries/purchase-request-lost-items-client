@@ -229,8 +229,10 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
             String instanceRecordId= holdingsRecord.getString("instanceId");
             url = "/inventory/instances/" + instanceRecordId;
             JSONObject instanceRecord = folio.executeGet(url, null);
-            purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() + 
+            purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() +
                 " \n Instance HRID: " + instanceRecord.getString("hrid"));
+            parsePublicationYear(purchaseRequest, instanceRecord);
+            parseEdition(purchaseRequest, instanceRecord);
             if (instanceRecord.has("indexTitle")) {
                 String indexTitle = instanceRecord.getString("indexTitle");
                 purchaseRequest.setTitle(indexTitle);
@@ -240,6 +242,38 @@ public class MonitorNewLostItemsService extends AbstractLostItemsService {
         catch (Exception e) {
             log.error("Could not get index title from instance record.", e);
         }
+    }
+
+    private void parsePublicationYear(PurchaseRequest purchaseRequest, JSONObject instanceRecord) {
+        if (!instanceRecord.has("publication")) {
+            return;
+        }
+        JSONArray publication = instanceRecord.getJSONArray("publication");
+        if (publication.length() == 0) {
+            return;
+        }
+        String dateOfPublication = publication.getJSONObject(0).optString("dateOfPublication");
+        if (!dateOfPublication.isEmpty()) {
+            purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() +
+                " \n Publication Year: " + dateOfPublication);
+        }
+    }
+
+    private void parseEdition(PurchaseRequest purchaseRequest, JSONObject instanceRecord) {
+        if (!instanceRecord.has("editions")) {
+            return;
+        }
+        JSONArray editions = instanceRecord.getJSONArray("editions");
+        if (editions.length() == 0) {
+            return;
+        }
+        StringBuilder editionStr = new StringBuilder();
+        for (int i = 0; i < editions.length(); i++) {
+            if (i > 0) editionStr.append("; ");
+            editionStr.append(editions.getString(i));
+        }
+        purchaseRequest.setRequesterComments(purchaseRequest.getRequesterComments() +
+            " \n Edition: " + editionStr);
     }
 
     private void markItemSubmittedToWorkflow(PurchaseRequest purchaseRequest) {

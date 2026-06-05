@@ -43,6 +43,7 @@ The Lost Items Client provides information about the existing FOLIO item that ma
 * FOLIO circulation count
 * Legacy circulation count (from a prior ILS/LSP), as configured 
 * Any retention agreement(s) affecting the item, as configured
+* Publication year and edition (from the instance record), as available
 
 This is in addition to the [standard enrichments](https://github.com/lehigh-university-libraries/purchase-request-workflow-proxy-server#enrichment) (pricing data, local and consortium holdings, etc.) performed by the Workflow Proxy Server.
 
