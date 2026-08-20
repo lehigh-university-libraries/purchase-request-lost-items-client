@@ -81,7 +81,7 @@ Follow the [deployment instructions for the Workflow Proxy Server](https://githu
 
 ## Dependencies
 
-- Java SE.  Tested on Java SE 11 (LTE).
+- Java SE.  Tested on Java SE 21 (LTS).
 - FOLIO LSP
 - Workflow Proxy Server
 
