@@ -36,8 +36,8 @@ lost-items-client.folio.item-notes.legacy-circulation-count=12345678-1234-1234-1
 lost-items-client.workflow-server.username=workflow_username
 lost-items-client.workflow-server.password=abc123
 lost-items-client.workflow-server.base-url=https://hostname.someuniversity.edu/workflow
-lost-items-client.workflow-server.approved-status=Approved
-lost-items-client.workflow-server.denied-status=Denied
+lost-items-client.workflow-server.approved-statuses=Approved,Approved - Ordering
+lost-items-client.workflow-server.denied-statuses=Denied
 
 
 # Debugging

@@ -17,16 +17,16 @@ import lombok.extern.slf4j.Slf4j;
 public class MonitorWorkflowService extends AbstractLostItemsService {
     
     private final Integer QUERY_LIMIT;
-    private final String WORKFLOW_APPROVED_STATUS;
-    private final String WORKFLOW_DENIED_STATUS;
+    private final List<String> WORKFLOW_APPROVED_STATUSES;
+    private final List<String> WORKFLOW_DENIED_STATUSES;
     private final String FOLIO_ITEM_NOTE_WORKFLOW_COMMENT;
 
     public MonitorWorkflowService(PropertiesConfig config) throws Exception {
         super(config);
 
         this.QUERY_LIMIT = config.getFolio().getWorkflowItemsLimit();
-        this.WORKFLOW_APPROVED_STATUS = config.getWorkflowServer().getApprovedStatus();
-        this.WORKFLOW_DENIED_STATUS = config.getWorkflowServer().getDeniedStatus();
+        this.WORKFLOW_APPROVED_STATUSES = config.getWorkflowServer().getApprovedStatuses();
+        this.WORKFLOW_DENIED_STATUSES = config.getWorkflowServer().getDeniedStatuses();
         this.FOLIO_ITEM_NOTE_WORKFLOW_COMMENT = config.getFolio().getItemNotes().getLostItemWorkflowComment();
 
         log.info("Started MonitorWorkflowService.");
@@ -78,11 +78,11 @@ public class MonitorWorkflowService extends AbstractLostItemsService {
     }
 
     private boolean isApproved(PurchaseRequest purchaseRequest) {
-        return WORKFLOW_APPROVED_STATUS.equals(purchaseRequest.getStatus());
+        return WORKFLOW_APPROVED_STATUSES.contains(purchaseRequest.getStatus());
     }
 
     private boolean isDenied(PurchaseRequest purchaseRequest) {
-        return WORKFLOW_DENIED_STATUS.equals(purchaseRequest.getStatus());
+        return WORKFLOW_DENIED_STATUSES.contains(purchaseRequest.getStatus());
     }
 
     private void handleApproval(PurchaseRequest purchaseRequest) {

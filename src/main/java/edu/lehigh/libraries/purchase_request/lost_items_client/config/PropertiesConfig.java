@@ -1,5 +1,7 @@
 package edu.lehigh.libraries.purchase_request.lost_items_client.config;
 
+import java.util.List;
+
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 
@@ -157,14 +159,14 @@ public class PropertiesConfig {
         private String password;
 
         /**
-         * Name of the workflow status representing approved purchase requests
+         * Names of the workflow statuses representing approved purchase requests
          */
-        private String approvedStatus;
+        private List<String> approvedStatuses;
 
         /**
-         * Name of the workflow status representing denied purchase requests
+         * Names of the workflow statuses representing denied purchase requests
          */
-        private String deniedStatus;
+        private List<String> deniedStatuses;
 
     }
 

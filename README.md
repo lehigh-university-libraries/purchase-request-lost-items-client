@@ -158,8 +158,8 @@ For connecting to the Purchase Request Workflow Proxy Server via its API.
 | lost-items-client.workflow-server.username | API username | Y |
 | lost-items-client.workflow-server.password | API password | Y |
 | lost-items-client.workflow-server.base-url | API base URL | Y |
-| lost-items-client.workflow-server.approved-status | Status field value indicating an approved purchase. | Y |
-| lost-items-client.workflow-server.denied-status | Status field value indicating a denied purchase. | Y |
+| lost-items-client.workflow-server.approved-statuses | Comma-separated list of status field values indicating an approved purchase. | Y |
+| lost-items-client.workflow-server.denied-statuses | Comma-separated list of status field values indicating a denied purchase. | Y |
 
 ### Debugging & Error Reporting
 
